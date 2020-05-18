@@ -1,0 +1,34 @@
+﻿@model GroceryList
+@{
+    //IEnumerable<GroceryItem>
+    ViewData["Title"] = "Current Grocery List";
+}
+<div class="text-center">
+    <h1 class="display-4">Grocery List</h1>
+</div>
+<table>
+    <thead>
+        <tr>
+            <th styled="display:none;">ID</th><th>Name</th><th>Brand</th>
+            <th>Created Date</th><th>Request Date</th><th>Who Requested</th>
+        </tr>
+        <tr>
+            <th styled="display:none;"></th><th></th><th></th>
+            <th columns="2"><a href="List/Item/0">Add</a></th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var item in await Model.GetItems())
+    {
+        <tr class="grocery-item">
+            <td styled="display:none;">@item.Id</td>
+            <td>@item.Name</td>
+            <td>@item.Brand</td>
+            <td>@item.CreatedAt</td>
+            <td>@item.RequestedAt</td>
+            <td>@item.RequestedBy</td>
+            <td><a href="List/Item/@item.Id">Edit</a></td>
+        </tr>
+    }
+    </tbody>
+</table>
