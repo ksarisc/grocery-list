@@ -2,12 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Tokens;
+using grocerylist.net.Models;
 
 namespace grocerylist.net
 {
@@ -23,6 +27,15 @@ namespace grocerylist.net
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            /*
+            services.AddDbContext<SecurityDbContext>(
+                options => options.UseSqlServer(Configuration.GetConnectionString("Security")));
+            services.AddIdentity<HomeUser, IdentityRole>()
+                .AddEntityFrameworkStores<SecurityDbContext>()
+                .AddDefaultTokenProviders();
+            services.AddScoped<IUserClaimsPrincipalFactory<HomeUser>,
+                AppClaimsPrincipalFactory>();
+            */
             services.AddControllersWithViews();
         }
 
