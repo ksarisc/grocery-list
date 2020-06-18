@@ -7,7 +7,7 @@ namespace grocerylist.net.Services
 {
     public interface IConnectionService
     {
-        DbConnection GetNew(string name = null);
+        DbConnection NewConnection(string name = null);
     }
 
     public class ConnectionService : IConnectionService
@@ -21,7 +21,7 @@ namespace grocerylist.net.Services
             conf = configuration;
         }
 
-        public DbConnection GetNew(string name = null)
+        public DbConnection NewConnection(string name = null)
         {
             if (String.IsNullOrEmpty(name)) {
                 return new MySqlConnection(connect);

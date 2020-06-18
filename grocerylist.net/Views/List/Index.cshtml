@@ -1,6 +1,5 @@
-﻿@model GroceryList
+﻿@model IEnumerable<grocerylist.net.Models.Grocery.Item>
 @{
-    //IEnumerable<GroceryItem>
     ViewData["Title"] = "Current Grocery List";
 }
 <div class="text-center">
@@ -18,15 +17,15 @@
         </tr>
     </thead>
     <tbody>
-    @foreach (var item in await Model.GetItems())
+    @foreach (var item in Model)
     {
         <tr class="grocery-item">
             <td styled="display:none;">@item.Id</td>
             <td>@item.Name</td>
             <td>@item.Brand</td>
-            <td>@item.CreatedAt</td>
-            <td>@item.RequestedAt</td>
-            <td>@item.RequestedBy</td>
+            <td>@item.CreatedTime</td>
+            <td>@item.RequestedTime</td>
+            <td>@item.CreatedBy</td>
             <td><a href="List/Item/@item.Id">Edit</a></td>
         </tr>
     }

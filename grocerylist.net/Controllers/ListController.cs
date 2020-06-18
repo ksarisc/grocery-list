@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using grocerylist.net.Models;
+using grocerylist.net.Models.Grocery;
 using grocerylist.net.Services;
 
 namespace grocerylist.net.Controllers
@@ -12,33 +12,32 @@ namespace grocerylist.net.Controllers
     public class ListController : Controller
     {
         private readonly ILogger<ListController> logger;
-        private readonly GroceryList list;
+        private readonly IGroceriesRepository groceries;
 
-        public ListController(ILogger<ListController> logger, IConnectionService connects)
+        public ListController(ILogger<ListController> logger, IGroceriesRepository groceries)
         {
             this.logger = logger;
-            this.list = new GroceryList(connects.GetNew(),
-                            HttpContext.User as HomeUser);
+            this.groceries = groceries;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View(list);
+            return View(await groceries.GetCurrentItemsAsync(User));
         }
 
         public async Task<IActionResult> Current()
         {
-            return View(await list.GetItems());
+            return View(await groceries.GetCurrentItemsAsync(User));
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> Item(int id)
         {
-            return View(await list.GetItemById(id));
+            return View(await groceries.GetItemByIdAsync(User, id));
         }
 
         [HttpPost]
-        public async Task<IActionResult> Item(GroceryItem groceryItem)
+        public async Task<IActionResult> Item(Item item)
         {
             try {
                 var item = await list.EditItem(groceryItem);

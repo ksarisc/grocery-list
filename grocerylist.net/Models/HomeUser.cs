@@ -1,11 +1,11 @@
 using System;
-using System.Security.Claims;
+using Microsoft.AspNetCore.Identity;
 
 namespace grocerylist.net.Models
 {
-    public class HomeUser : ClaimsPrincipal
+    public class HomeUser : IdentityUser
     {
-        public int Id { get; protected set; }
         public int HomeId { get; protected set; }
+        public string HomeIdHash { get; set; }
     }
 }
