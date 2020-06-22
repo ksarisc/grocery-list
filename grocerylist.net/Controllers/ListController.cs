@@ -4,7 +4,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using grocerylist.net.Models.Grocery;
-using grocerylist.net.Services;
+using grocerylist.net.Models.Security;
+using grocerylist.net.Services.Grocery;
 
 namespace grocerylist.net.Controllers
 {
@@ -12,42 +13,42 @@ namespace grocerylist.net.Controllers
     public class ListController : Controller
     {
         private readonly ILogger<ListController> logger;
-        private readonly IGroceriesRepository groceries;
+        private readonly IGroceriesRepository repo;
 
         public ListController(ILogger<ListController> logger, IGroceriesRepository groceries)
         {
             this.logger = logger;
-            this.groceries = groceries;
+            this.repo = groceries;
         }
 
         public async Task<IActionResult> Index()
         {
-            return View(await groceries.GetCurrentItemsAsync(User));
+            return View(await repo.GetCurrentItemsAsync(HomeUser.Get(User)));
         }
 
         public async Task<IActionResult> Current()
         {
-            return View(await groceries.GetCurrentItemsAsync(User));
+            return View(await repo.GetCurrentItemsAsync(HomeUser.Get(User)));
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> Item(int id)
         {
-            return View(await groceries.GetItemByIdAsync(User, id));
+            return View(await repo.GetItemByIdAsync(HomeUser.Get(User), id));
         }
 
         [HttpPost]
         public async Task<IActionResult> Item(Item item)
         {
             try {
-                var item = await list.EditItem(groceryItem);
+                var result = await repo.SaveAsync(HomeUser.Get(User), item);
                 ViewBag["Message"] = "Grocery list updated!";
-                return View(item);
+                return View(result);
             } catch (Exception eSet) {
-                logger.LogError(eSet, "Grocery Item Update Error", groceryItem);
+                logger.LogError(eSet, "Grocery Item Update Error", item);
                 ViewBag["Message"] = "Grocery list updated!";
             }
-            return View(groceryItem);
+            return View(item);
         } // END Item
     }
 }
