@@ -5,6 +5,12 @@ using grocerylist.net.Models.Security;
 
 namespace grocerylist.net
 {
+    public static class MyClaimTypes
+    {
+        public static string Location= "http://schemas.xmlsoap.org/ws/2020/09/identity/claims/location";
+        public static string LocationHash= "http://schemas.xmlsoap.org/ws/2020/09/identity/claims/location-hash";
+    }
+
     public static class IdentityExtensions
     {
         public static void AddClaim(this ClaimsPrincipal principal, string claimType, string value)
@@ -15,10 +21,10 @@ namespace grocerylist.net
         public static void AddHome(this ClaimsPrincipal principal, HomeUser user)
         {
             if (user.HomeId != 0 && user.HomeId != -1) {
-                AddClaim(principal, ClaimTypes.Location, user.HomeId);
+                AddClaim(principal, MyClaimTypes.Location, user.HomeId.ToString());
             }
             if (!String.IsNullOrWhiteSpace(user.HomeIdHash)) {
-                AddClaim(principal, ClaimTypes.LocHash, user.HomeIdHash);
+                AddClaim(principal, MyClaimTypes.LocationHash, user.HomeIdHash);
             }
         } // END AddHome
 
