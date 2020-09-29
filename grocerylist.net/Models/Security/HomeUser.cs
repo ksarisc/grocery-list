@@ -6,7 +6,7 @@ namespace grocerylist.net.Models.Security
 {
     public class HomeUser : IdentityUser
     {
-        public int HomeId { get; protected set; }
+        public uint HomeId { get; protected set; }
         public string HomeIdHash { get; set; }
 
         public string FirstName { get; set; }

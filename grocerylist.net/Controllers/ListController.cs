@@ -9,7 +9,8 @@ using grocerylist.net.Services.Grocery;
 
 namespace grocerylist.net.Controllers
 {
-    [Authorize(Policy = "User")] //Admin
+    //[Authorize(Policy = "User")] //Admin
+    [Authorize]
     public class ListController : Controller
     {
         private readonly ILogger<ListController> logger;
@@ -32,7 +33,7 @@ namespace grocerylist.net.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> Item(int id)
+        public async Task<IActionResult> Item(uint id)
         {
             return View(await repo.GetItemByIdAsync(HomeUser.Get(User), id));
         }

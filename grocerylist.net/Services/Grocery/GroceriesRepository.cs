@@ -13,9 +13,9 @@ namespace grocerylist.net.Services.Grocery
     {
         Task<Item> SaveAsync(HomeUser user, Item item);
         Task<IEnumerable<Item>> GetCurrentItemsAsync(HomeUser user);
-        Task<IEnumerable<ArchivedItem>> GetItemsAsync(HomeUser user, ItemsQuery query);
-        Task<ArchivedItem> GetItemByIdAsync(HomeUser user, int itemId);
-        Task<ArchivedItem> PurchaseAsync(HomeUser user, Item item);
+        Task<IEnumerable<Item>> GetItemsAsync(HomeUser user, ItemsQuery query);
+        Task<Item> GetItemByIdAsync(HomeUser user, uint itemId);
+        Task<PurchasedItem> PurchaseAsync(HomeUser user, Item item);
     }
 
     public class GroceriesRepository : IGroceriesRepository
@@ -66,7 +66,7 @@ namespace grocerylist.net.Services.Grocery
             }
         } // END GetCurrentItemsAsync
 
-        public async Task<IEnumerable<ArchivedItem>> GetItemsAsync(HomeUser user, ItemsQuery query)
+        public async Task<IEnumerable<Item>> GetItemsAsync(HomeUser user, ItemsQuery query)
         {
             var qb = new StringBuilder(queryRepo.Get("ItemsHistoryQuery"));
             var parms = new Dapper.DynamicParameters();
@@ -95,17 +95,17 @@ namespace grocerylist.net.Services.Grocery
             using (var conn = factory.NewConnection(archive))
             {
                 await conn.OpenAsync();
-                return await conn.QueryAsync<ArchivedItem>(
+                return await conn.QueryAsync<PurchasedItem>(
                     qb.ToString(), parms);
             }
         } // END GetItemsAsync
 
-        private async Task<ArchivedItem> GetItemByIdAsync(string query, string connect, int homeId, object parameter)
+        private async Task<Item> GetItemByIdAsync(string query, string connect, uint homeId, object parameter)
         {
             using (var conn = factory.NewConnection(connect))
             {
                 await conn.OpenAsync();
-                var result = await conn.QueryFirstOrDefaultAsync<ArchivedItem>(query, parameter);
+                var result = await conn.QueryFirstOrDefaultAsync<Item>(query, parameter);
                 if (result != null) {
                     if (result.HomeId == homeId) {
                         return result;
@@ -116,7 +116,7 @@ namespace grocerylist.net.Services.Grocery
             return null;
         } // END GetItemByIdAsync
 
-        public async Task<ArchivedItem> GetItemByIdAsync(HomeUser user, int itemId)
+        public async Task<Item> GetItemByIdAsync(HomeUser user, uint itemId)
         {
             var parm = new { ItemId = itemId };
             var query = queryRepo.Get("ItemByIdQuery");
@@ -132,7 +132,7 @@ namespace grocerylist.net.Services.Grocery
             throw new KeyNotFoundException($"Item ID ({itemId}) NOT Found!");
         } // END GetItemByIdAsync
 
-        public async Task<ArchivedItem> PurchaseAsync(HomeUser user, Item item)
+        public async Task<PurchasedItem> PurchaseAsync(HomeUser user, Item item)
         {
             // check item & user HomeId compatible?
 
@@ -140,7 +140,7 @@ namespace grocerylist.net.Services.Grocery
             using (var conn = factory.NewConnection(archive))
             {
                 await conn.OpenAsync();
-                return await conn.QueryFirstOrDefaultAsync<ArchivedItem>(
+                return await conn.QueryFirstOrDefaultAsync<PurchasedItem>(
                     queryRepo.Get("ItemPurchaseQuery"), item);
             }
 

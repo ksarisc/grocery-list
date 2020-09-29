@@ -20,7 +20,7 @@ namespace grocerylist.net
 
         public static void AddHome(this ClaimsPrincipal principal, HomeUser user)
         {
-            if (user.HomeId != 0 && user.HomeId != -1) {
+            if (user.HomeId != 0) {
                 AddClaim(principal, MyClaimTypes.Location, user.HomeId.ToString());
             }
             if (!String.IsNullOrWhiteSpace(user.HomeIdHash)) {
