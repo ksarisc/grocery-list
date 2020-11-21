@@ -42,7 +42,7 @@ namespace grocerylist.net.Services.Grocery
             }
             var query = queryRepo.Get((item.Id > 0) ?
                             "ItemUpdateQuery" : "ItemInsertQuery");
-            using (var conn = factory.NewConnection(current))
+            using (var conn = factory.Create(current))
             {
                 await conn.OpenAsync();
                 var result = await conn.QueryFirstOrDefaultAsync<Item>(query, item);
@@ -58,7 +58,7 @@ namespace grocerylist.net.Services.Grocery
             var parm = new {
                 HomeId = user.HomeId
             };
-            using (var conn = factory.NewConnection(current))
+            using (var conn = factory.Create(current))
             {
                 await conn.OpenAsync();
                 return await conn.QueryAsync<Item>(
@@ -92,7 +92,7 @@ namespace grocerylist.net.Services.Grocery
                 parms.Add("@PurchasedDate2", query.PurchasedDate2.Value);
                 qb.Append("AND purchased_at <= @PurchasedDate2");
             }
-            using (var conn = factory.NewConnection(archive))
+            using (var conn = factory.Create(archive))
             {
                 await conn.OpenAsync();
                 return await conn.QueryAsync<PurchasedItem>(
@@ -102,7 +102,7 @@ namespace grocerylist.net.Services.Grocery
 
         private async Task<Item> GetItemByIdAsync(string query, string connect, uint homeId, object parameter)
         {
-            using (var conn = factory.NewConnection(connect))
+            using (var conn = factory.Create(connect))
             {
                 await conn.OpenAsync();
                 var result = await conn.QueryFirstOrDefaultAsync<Item>(query, parameter);
@@ -137,7 +137,7 @@ namespace grocerylist.net.Services.Grocery
             // check item & user HomeId compatible?
 
             // create item in archive context (sync will happen later to delete from current)
-            using (var conn = factory.NewConnection(archive))
+            using (var conn = factory.Create(archive))
             {
                 await conn.OpenAsync();
                 return await conn.QueryFirstOrDefaultAsync<PurchasedItem>(
