@@ -23,14 +23,14 @@ namespace grocerylist.net.Services.Grocery
         private static readonly string current = "current";
         private static readonly string archive = "archive";
 
-        private readonly IConnectionService factory;
+        private readonly IConnector factory;
         private readonly IQueryRepository queryRepo;
         private readonly ILogger logger;
 
-        public GroceriesRepository(IConnectionService connectionService,
+        public GroceriesRepository(IConnector connector,
                             IQueryRepository queryRepo, ILogger logger)
         {
-            this.factory = connectionService;
+            this.factory = connector;
             this.queryRepo = queryRepo;
             this.logger = logger;
         }
