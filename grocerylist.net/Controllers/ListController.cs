@@ -24,25 +24,25 @@ namespace grocerylist.net.Controllers
 
         public async Task<IActionResult> Index()
         {
-            return View(await repo.GetCurrentItemsAsync(HomeUser.Get(User)));
+            return View(await repo.GetCurrentItemsAsync(User.GetHomeUser()));
         }
 
         public async Task<IActionResult> Current()
         {
-            return View(await repo.GetCurrentItemsAsync(HomeUser.Get(User)));
+            return View(await repo.GetCurrentItemsAsync(User.GetHomeUser()));
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> Item(uint id)
         {
-            return View(await repo.GetItemByIdAsync(HomeUser.Get(User), id));
+            return View(await repo.GetItemByIdAsync(User.GetHomeUser(), id));
         }
 
         [HttpPost]
         public async Task<IActionResult> Item(Item item)
         {
             try {
-                var result = await repo.SaveAsync(HomeUser.Get(User), item);
+                var result = await repo.SaveAsync(User.GetHomeUser(), item);
                 ViewBag["Message"] = "Grocery list updated!";
                 return View(result);
             } catch (Exception eSet) {

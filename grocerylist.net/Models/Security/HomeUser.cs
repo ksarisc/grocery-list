@@ -12,10 +12,10 @@ namespace grocerylist.net.Models.Security
         public string FirstName { get; set; }
         public string LastName { get; set; }
 
-        public static HomeUser Get(ClaimsPrincipal user) //IdentityUser user)
-        {
-            // should do more here to setup correctly, but for now
-            return user.Identity as HomeUser;
-        }
+        // public static HomeUser Get(ClaimsPrincipal user) //IdentityUser user)
+        // {
+        //     // should do more here to setup correctly, but for now
+        //     return user.Identity as HomeUser;
+        // }
     }
 }

@@ -26,7 +26,9 @@ namespace grocerylist.net.Models.Config
                 throw new ArgumentNullException("Connector configuration REQUIRED");
             }
             var conf = new ConnectorConfig();
+            Console.WriteLine("Connector");
             foreach (var child in section.GetChildren()) {
+                Console.WriteLine("Key: {0} | Value: {1}", child.Key, child.Value);
                 if (String.IsNullOrWhiteSpace(child.Key) || child.Key.Equals("default", StringComparison.OrdinalIgnoreCase)) {
                     conf.Default = child.Value;
                     continue;

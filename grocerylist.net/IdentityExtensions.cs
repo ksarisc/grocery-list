@@ -102,8 +102,24 @@ namespace grocerylist.net
             return claim.Type.Equals(claimType, StringComparison.Ordinal);
         } // END IsType
 
+        public static HomeUser GetHomeUser(this IIdentity identity)
+        {
+            if (!identity.IsAuthenticated) {
+                return null;
+            }
+            if (identity is HomeUser) {
+                return identity as HomeUser;
+            }
+            return null;
+        } // END GetHomeUser
+
         public static HomeUser GetHomeUser(this ClaimsPrincipal principal)
         {
+            var ident = principal.Identity.GetHomeUser();
+            if (ident != null) {
+                return ident;
+            }
+            // need to log the principal/identity NOW
             var user = new HomeUser();
             foreach(var claim in principal.Claims)
             {
