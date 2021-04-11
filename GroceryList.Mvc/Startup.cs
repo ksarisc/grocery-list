@@ -1,7 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using GroceryList.Mvc.Models.Config;
+using GroceryList.Mvc.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Builder;
@@ -10,6 +8,8 @@ using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System;
+using System.Threading.Tasks;
 
 namespace GroceryList.Mvc
 {
@@ -40,6 +40,9 @@ namespace GroceryList.Mvc
                 // .AddTwitter(twitterOptions => { ... })
                 // .AddFacebook(facebookOptions => { ... });
                 ;
+            services.Configure<DataConfig>(Configuration.GetSection(DataConfig.Data));
+            services.AddSingleton<IDataService, DataService>();
+            services.AddSingleton<IGroceryRepository, GroceryRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
