@@ -36,7 +36,7 @@ namespace GroceryList.Mvc.Services
         private readonly SqliteConnection conn;
         private readonly string dataPath;
         private readonly string userPath;
-        private readonly Dictionary<Guid, string> lists = new Dictionary<Guid, string>();
+        private readonly Dictionary<string, string> lists = new Dictionary<string, string>();
 
         public DataService(IOptions<DataConfig> options)
         {
@@ -89,15 +89,16 @@ namespace GroceryList.Mvc.Services
         //     //return default;
         // }
 
-        private async ValueTask<string> GetSession(Guid userId)
+        private async ValueTask<string> GetSession(AppUser user)
         {
+            var userId = user.GetId();
             if (!lists.TryGetValue(userId, out var path))
             {
                 throw new ArgumentException("No session found");
             }
             return await File.ReadAllTextAsync(String.Format(userPath, userId));
         } // END GetSession
-        private async ValueTask SetSession(Guid userId, string modelType, string modelPath)
+        private async ValueTask SetSession(AppUser user, string modelType, string modelPath)
         {
             // save the path somehow temporarily
             // probably should be saved to sqlite global or home specific later
@@ -109,6 +110,7 @@ namespace GroceryList.Mvc.Services
             //     var bytes = Encoding.UTF8.GetBytes(modelPath);//$"{model}")
             //     await curr.WriteAsync(bytes, 0, bytes.Length);
             // }
+            var userId = user.GetId();
             lists[userId] = modelPath;
             await File.WriteAllTextAsync(String.Format(userPath, userId), modelPath);
         } // END SetSession
@@ -123,7 +125,7 @@ namespace GroceryList.Mvc.Services
             using (var file = GetFile(path, read))
             {
                 var value = await JsonSerializer.DeserializeAsync<T>(file);
-                await SetSession(user.Id, typeof(T).FullName, path);
+                await SetSession(user, typeof(T).FullName, path);
                 return value;
             }
         } // END GetDataAsync
@@ -134,7 +136,7 @@ namespace GroceryList.Mvc.Services
             // {
             //     throw new Exception($"User ({user.Email}) does NOT have permission to save");
             // }
-            var path = await GetSession(user.Id);
+            var path = await GetSession(user);
             using (var file = new FileStream(path, FileMode.OpenOrCreate,
                         FileAccess.Write, FileShare.None, 16384, true))
             {

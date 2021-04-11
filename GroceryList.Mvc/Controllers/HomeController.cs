@@ -9,24 +9,33 @@ using GroceryList.Mvc.Services;
 
 namespace GroceryList.Mvc.Controllers
 {
-    [Authorize]
+    //[Authorize]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        private readonly IUserService userSvc;
+        private readonly IGroceryRepository grocery;
 
         public HomeController(ILogger<HomeController> logger,
-                    IUserService userService)
+                    IGroceryRepository groceryRepository)
         {
             _logger = logger;
-            userSvc = userService;
+            grocery = groceryRepository;
         }
 
         public async Task<IActionResult> Index()
         {
-            //await userSvc.
+            var user = Request.GetUser();
+            try
+            {
+                var list = await grocery.GetListAsync(user);
+                return View(list);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"GetList Error: {user.GetContext()}");
+            }
             return View();
-        }
+        } // END Index
 
         public IActionResult Privacy()
         {
