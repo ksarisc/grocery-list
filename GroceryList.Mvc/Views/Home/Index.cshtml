@@ -1,4 +1,5 @@
-﻿@{
+﻿@model GroceryList.Mvc.Models.TripList
+@{
     ViewData["Title"] = "Current List";
 }
 
@@ -6,7 +7,36 @@
     <h1 class="display-4">Current Grocery List</h1>
 </div>
 <div>
-    <ul>
-        <li>Milk</li>
+    <ul>@* <li>Milk</li> *@
+    @if (Model != null && Model.Items != null) {
+        @foreach (var item in Model?.Items) {
+            <li>
+                <span>@item.Name</span>
+                <span>@item.Brand</span>
+                <span>@item.CreatedTime</span>
+                <span>@item.CreatedBy</span>
+                <span>@item.RequestedTime</span>
+            </li>
+        }
+    }
     </ul>
+    <form method="POST" action="">
+    <div class="form">
+        <div class="field">
+            <label for="ItemName">Item Name:</label>
+            <input type="text" id="ItemName" name="ItemName" value="" autofocus>
+        </div>
+        <div class="field">
+            <label for="ItemBrand">Brand:</label>
+            <input type="text" id="ItemBrand" name="ItemBrand" value="">
+        </div>
+        <div class="field">
+            <label for="RequestedTime">When do you need it?</label>
+            <input type="datetime" id="RequestedTime" name="RequestedTime" value="">
+        </div>
+        <div class="field button">
+            <input type="submit" id="Save" name="Save" value="Save">
+        </div>
+    </div>
+    </form>
 </div>

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using GroceryList.Mvc.Models;
+using GroceryList.Mvc.Models.Forms;
 using GroceryList.Mvc.Services;
 
 namespace GroceryList.Mvc.Controllers
@@ -22,6 +23,7 @@ namespace GroceryList.Mvc.Controllers
             grocery = groceryRepository;
         }
 
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
             var user = Request.GetUser();
@@ -34,6 +36,17 @@ namespace GroceryList.Mvc.Controllers
             {
                 _logger.LogError(e, $"GetList Error: {user.GetContext()}");
             }
+            return View();
+        } // END Index
+
+        [HttpPost]
+        public async Task<IActionResult> Index(TripItemRequest model)
+        {
+            var user = Request.GetUser();
+            // set message
+
+            // redirect to Index?
+
             return View();
         } // END Index
 
