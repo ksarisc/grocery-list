@@ -7,6 +7,6 @@ namespace GroceryList.Mvc.Models
     {
         public Guid HomeId { get; set; }
 
-        public IEnumerable<TripItem> Items { get; set; }
+        public List<TripItem> Items { get; set; }
     }
 }

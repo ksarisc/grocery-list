@@ -5,21 +5,35 @@
 
 <div class="text-center">
     <h1 class="display-4">Current Grocery List</h1>
+    <h3>@ViewData["Message"]</h3>
 </div>
 <div>
-    <ul>@* <li>Milk</li> *@
-    @if (Model != null && Model.Items != null) {
-        @foreach (var item in Model?.Items) {
-            <li>
-                <span>@item.Name</span>
-                <span>@item.Brand</span>
-                <span>@item.CreatedTime</span>
-                <span>@item.CreatedBy</span>
-                <span>@item.RequestedTime</span>
-            </li>
-        }
+    @{
+        var hasItems = Model != null && Model.Items != null;
     }
-    </ul>
+    @if (!hasItems) {
+        <h3>There are no items in your list</h3>
+    }
+    <div class="grocery-list">
+        <div class="grocery-item header">
+            <div class="grocery-field">Name</div>
+            <div class="grocery-field">Brand</div>
+            <div class="grocery-field">Time Requested</div>
+            <div class="grocery-field">Time Entered</div>
+            <div class="grocery-field">Who Entered</div>
+        </div>
+        @if (hasItems) {
+            foreach (var item in Model.Items) {
+                <div class="grocery-item header">
+                <div class="grocery-field">@item.Name</div>
+                <div class="grocery-field">@item.Brand</div>
+                <div class="grocery-field">@item.RequestedTime</div>
+                <div class="grocery-field">@item.CreatedTime</div>
+                <div class="grocery-field">@item.CreatedBy</div>
+                </div>
+            }
+        }
+    </div>
     <form method="POST" action="">
     <div class="form">
         <div class="field">

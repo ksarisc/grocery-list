@@ -36,11 +36,16 @@ namespace GroceryList.Mvc.Services
         private readonly SqliteConnection conn;
         private readonly string dataPath;
         private readonly string userPath;
-        private readonly Dictionary<string, string> lists = new Dictionary<string, string>();
+        private readonly Dictionary<string, string> lists =
+            new Dictionary<string, string>(StringComparer.Ordinal);
 
         public DataService(IOptions<DataConfig> options)
         {
-            dataPath = options.Value.Path;
+            if (String.IsNullOrWhiteSpace(options.Value.Path))
+            {
+                throw new ArgumentNullException("DataConfig Path REQUIRED");
+            }
+            dataPath = Path.GetFullPath(options.Value.Path);
             if (!Directory.Exists(dataPath))
             {
                 Directory.CreateDirectory(dataPath);
@@ -50,6 +55,7 @@ namespace GroceryList.Mvc.Services
             {
                 Directory.CreateDirectory(userPath);
             }
+            userPath = Path.Combine(userPath, "ses_{0}");
             // should we cache the path lookups?
             // TODO: need to determine how often a lookup is required
             conn = new SqliteConnection(String.Format(connect,
@@ -76,10 +82,15 @@ namespace GroceryList.Mvc.Services
             return path.IndexOf(user.GetHome(), StringComparison.Ordinal) != -1;
         }
 
+        private string GetHomePath(AppUser user)
+        {
+            return Path.Combine(dataPath, user.GetHome());
+        }
+
         private string GetDataPath(AppUser user, DateTime? dateTime)
         {
             var file = !dateTime.HasValue ? current : dateTime.Value.ToString(dtformat);
-            return Path.Combine(dataPath, user.GetHome(), file);
+            return Path.Combine(GetHomePath(user), file);
         }
 
         // public T GetDataFile<T>(AppUser user, bool getCurrent = true){
@@ -96,6 +107,7 @@ namespace GroceryList.Mvc.Services
             {
                 throw new ArgumentException("No session found");
             }
+            //await Console.Out.WriteLineAsync($"GetSession: {userPath}|{userId}");
             return await File.ReadAllTextAsync(String.Format(userPath, userId));
         } // END GetSession
         private async ValueTask SetSession(AppUser user, string modelType, string modelPath)
@@ -112,6 +124,7 @@ namespace GroceryList.Mvc.Services
             // }
             var userId = user.GetId();
             lists[userId] = modelPath;
+            //await Console.Out.WriteLineAsync($"SetSession: {userPath}|{userId}");
             await File.WriteAllTextAsync(String.Format(userPath, userId), modelPath);
         } // END SetSession
 
@@ -120,7 +133,13 @@ namespace GroceryList.Mvc.Services
             var path = GetDataPath(user, dateTime);
             if (String.IsNullOrWhiteSpace(path))
             {
+                await SetSession(user, typeof(T).FullName, String.Empty);
                 throw new ArgumentException("No data found");
+            }
+            if (!File.Exists(path))
+            {
+                await SetSession(user, typeof(T).FullName, $"{path}|");
+                return default(T);
             }
             using (var file = GetFile(path, read))
             {
@@ -137,6 +156,19 @@ namespace GroceryList.Mvc.Services
             //     throw new Exception($"User ({user.Email}) does NOT have permission to save");
             // }
             var path = await GetSession(user);
+            if (String.IsNullOrWhiteSpace(path))
+            {
+                throw new ArgumentNullException("No Session Found!");
+            }
+            if (path.EndsWith('|'))
+            {
+                var folder = GetHomePath(user);
+                if (!Directory.Exists(folder))
+                {
+                    Directory.CreateDirectory(folder);
+                }
+                path = path.Substring(0, path.Length - 1);
+            }
             using (var file = new FileStream(path, FileMode.OpenOrCreate,
                         FileAccess.Write, FileShare.None, 16384, true))
             {

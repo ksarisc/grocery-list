@@ -45,10 +45,10 @@ namespace GroceryList.Mvc
             //if (!address.Equals("::1") && !address.Equals("127.0.0.1"))
             if (!remote.Equals(local))
             {
-                System.Diagnostics.Debug.WriteLine($"EMPTY USER FOUND: {remote}|{local}");
+                Console.Out.WriteLine($"EMPTY USER FOUND: {remote}|{local}");
                 return AppUser.Empty;
             }
-            System.Diagnostics.Debug.WriteLine($"I WAS FOUND: {remote}|{local}");
+            Console.Out.WriteLine($"I WAS FOUND: {remote}|{local}");
             return context.User.ToAppUser();
         }
 
