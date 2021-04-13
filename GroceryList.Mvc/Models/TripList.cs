@@ -5,8 +5,13 @@ namespace GroceryList.Mvc.Models
 {
     public class TripList
     {
-        public Guid HomeId { get; set; }
+        public Guid HomeId { get; }
 
-        public List<TripItem> Items { get; set; }
+        public List<TripItem> Items { get; } = new List<TripItem>();
+
+        public TripList(Guid homeId)
+        {
+            HomeId = homeId;
+        }
     }
 }
