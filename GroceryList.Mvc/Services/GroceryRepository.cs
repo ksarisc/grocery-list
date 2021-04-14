@@ -2,7 +2,7 @@ using Dapper;
 using GroceryList.Mvc.Models;
 using GroceryList.Mvc.Models.Forms;
 using System;
-using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 using System.Threading.Tasks;
 
@@ -12,7 +12,7 @@ namespace GroceryList.Mvc.Services
     {
         public Task<TripList> GetListAsync(AppUser user);
         public Task SetListAsync(AppUser user, TripList list);
-        public Task<TripList> AddItem(AppUser user, TripItemRequest itemRequest);
+        public Task<TripList> AddItemAsync(AppUser user, TripItemRequest itemRequest);
     }
 
     public class GroceryRepository : IGroceryRepository
@@ -20,6 +20,8 @@ namespace GroceryList.Mvc.Services
         private const string create = "CREATE TABLE list_active (name, brand, requested_at, created_at, created_by);";
         private const string select = "SELECT id Id, name Name, brand Brand, requested_at RequestedTime, created_at CreatedTime, created_by CreatedBy FROM list_active;";
         private const string insert = "INSERT INTO list_active (name, brand, requested_at, created_at, created_by) VALUES (@Name, @Brand, @RequestedTime, @CreatedTime, @CreatedBy);";
+        //name = @Name, 
+        private const string update = "UPDATE list_active SET brand = @Brand, requested_at = @RequestedTime WHERE id = @Id;";
 
         private readonly IDataService data;
 
@@ -28,16 +30,36 @@ namespace GroceryList.Mvc.Services
             data = dataService;
         }
 
-        private async Task<TripList> Get(AppUser user, DbConnection conn)
+        private static async Task<TripList> Get(AppUser user, DbConnection conn)
         {
             var list = new TripList(user.HomeId.Value);
-            if (conn.State != System.Data.ConnectionState.Open)
+            if (conn.State != ConnectionState.Open)
             {
                 await conn.OpenAsync();
             }
             list.Items.AddRange(await conn.QueryAsync<TripItem>(select));
             return list;
-        }
+        } // END Get
+
+        private static async Task<int> Insert(DbConnection conn, TripItem item)
+        {
+            if (conn.State != ConnectionState.Open)
+            {
+                await conn.OpenAsync();
+            }
+            return await conn.ExecuteAsync(insert, item);
+        } // END Insert
+
+        private static async Task<int> Update(DbConnection conn, TripItem item)
+        {
+            if (conn.State != ConnectionState.Open)
+            {
+                await conn.OpenAsync();
+            }
+            return await conn.ExecuteAsync(update, item);
+        } // END Update
+
+        // DELETE
 
         public async Task<TripList> GetListAsync(AppUser user)
         {
@@ -49,12 +71,24 @@ namespace GroceryList.Mvc.Services
 
         public async Task SetListAsync(AppUser user, TripList list)
         {
-            await Task.Delay(10);
             // pull & compare OR backup & replace wholesale?
-            throw new NotImplementedException();
-        }
+            using (var conn = data.GetConnection(user))
+            {
+                foreach (var item in list.Items)
+                {
+                    if (item.Id == 0)
+                    {
+                        await Insert(conn, item);
+                    }
+                    else
+                    {
+                        await Update(conn, item);
+                    }
+                }
+            }
+        } // END SetListAsync
 
-        public async Task<TripList> AddItem(AppUser user, TripItemRequest itemRequest)
+        public async Task<TripList> AddItemAsync(AppUser user, TripItemRequest itemRequest)
         {
             if (itemRequest == null)
             {
@@ -81,9 +115,7 @@ namespace GroceryList.Mvc.Services
 
             using (var conn = data.GetConnection(user))
             {
-
-                await conn.OpenAsync();
-                await conn.ExecuteAsync(insert, new TripItem
+                await Insert(conn, new TripItem
                 {
                     Name = itemRequest.ItemName,
                     Brand = itemRequest.ItemBrand,
@@ -93,6 +125,6 @@ namespace GroceryList.Mvc.Services
                 });
                 return await Get(user, conn);
             }
-        } // END AddItem
+        } // END AddItemAsync
     }
 }

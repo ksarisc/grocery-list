@@ -55,7 +55,7 @@ namespace GroceryList.Mvc.Controllers
             var message = msgIndex;
             try
             {
-                var list = await grocery.AddItem(user, model);
+                var list = await grocery.AddItemAsync(user, model);
                 ViewData["Message"] = message;
                 return View(list);
             }
