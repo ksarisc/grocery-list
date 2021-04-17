@@ -10,6 +10,8 @@ namespace GroceryList.Mvc.Models
         public string FirstName { get; set; }
         public string LastName { get; set; }
 
+        public string IpAddress { get; set; }
+
         public static readonly AppUser Empty = new AppUser
         {
         };

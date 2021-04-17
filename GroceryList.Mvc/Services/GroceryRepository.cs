@@ -10,14 +10,16 @@ namespace GroceryList.Mvc.Services
 {
     public interface IGroceryRepository
     {
-        public Task<TripList> GetListAsync(AppUser user);
-        public Task SetListAsync(AppUser user, TripList list);
+        public Task<TripList> GetAsync(AppUser user);
+        public Task SetAsync(AppUser user, TripList list);
         public Task<TripList> AddItemAsync(AppUser user, TripItemRequest itemRequest);
     }
 
     public class GroceryRepository : IGroceryRepository
     {
-        private const string create = "CREATE TABLE list_active (name, brand, requested_at, created_at, created_by);";
+        // table version?
+        private const string table = "list_active";
+        private const string create = "CREATE TABLE list_active (name VARCHAR(255) NOT NULL, brand VARCHAR(255), requested_at DATETIME, created_at VARCHAR(255) NOT NULL, created_by DATETIME NOT NULL);";
         private const string select = "SELECT id Id, name Name, brand Brand, requested_at RequestedTime, created_at CreatedTime, created_by CreatedBy FROM list_active;";
         private const string insert = "INSERT INTO list_active (name, brand, requested_at, created_at, created_by) VALUES (@Name, @Brand, @RequestedTime, @CreatedTime, @CreatedBy);";
         //name = @Name, 
@@ -30,13 +32,21 @@ namespace GroceryList.Mvc.Services
             data = dataService;
         }
 
-        private static async Task<TripList> Get(AppUser user, DbConnection conn)
+        // public async Task CreateAsync(AppUser user){
+        //     using (var conn = data.GetConnection(user)){
+        //         await conn.OpenAsync();
+        //         await conn.ExecuteAsync(create);
+        //     }
+        // } // END CreateAsync
+
+        private async Task<TripList> Get(AppUser user, DbConnection conn)
         {
             var list = new TripList(user.HomeId.Value);
             if (conn.State != ConnectionState.Open)
             {
                 await conn.OpenAsync();
             }
+            await data.TableExists(conn, table, create);
             list.Items.AddRange(await conn.QueryAsync<TripItem>(select));
             return list;
         } // END Get
@@ -61,7 +71,7 @@ namespace GroceryList.Mvc.Services
 
         // DELETE
 
-        public async Task<TripList> GetListAsync(AppUser user)
+        public async Task<TripList> GetAsync(AppUser user)
         {
             using (var conn = data.GetConnection(user))
             {
@@ -69,7 +79,7 @@ namespace GroceryList.Mvc.Services
             }
         } // END GetListAsync
 
-        public async Task SetListAsync(AppUser user, TripList list)
+        public async Task SetAsync(AppUser user, TripList list)
         {
             // pull & compare OR backup & replace wholesale?
             using (var conn = data.GetConnection(user))

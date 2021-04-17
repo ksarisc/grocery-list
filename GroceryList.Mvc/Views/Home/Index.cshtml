@@ -1,56 +1,7 @@
-﻿@model GroceryList.Mvc.Models.TripList
-@{
-    ViewData["Title"] = "Current List";
+﻿@{
+    ViewData["Title"] = "Welcome";
 }
-
 <div class="text-center">
-    <h1 class="display-4">Current Grocery List</h1>
-    <h3>@ViewData["Message"]</h3>
-</div>
-<div>
-    @{
-        var hasItems = Model != null && Model.Items != null;
-    }
-    @if (!hasItems) {
-        <h3>There are no items in your list</h3>
-    }
-    <div class="grocery-list">
-        <div class="grocery-item header">
-            <div class="grocery-field">Name</div>
-            <div class="grocery-field">Brand</div>
-            <div class="grocery-field">Time Requested</div>
-            <div class="grocery-field">Time Entered</div>
-            <div class="grocery-field">Who Entered</div>
-        </div>
-        @if (hasItems) {
-            foreach (var item in Model.Items) {
-                <div class="grocery-item header">
-                <div class="grocery-field">@item.Name</div>
-                <div class="grocery-field">@item.Brand</div>
-                <div class="grocery-field">@item.RequestedTime</div>
-                <div class="grocery-field">@item.CreatedTime</div>
-                <div class="grocery-field">@item.CreatedBy</div>
-                </div>
-            }
-        }
-    </div>
-    <form method="POST" action="">
-    <div class="form">
-        <div class="field">
-            <label for="ItemName">Item Name:</label>
-            <input type="text" id="ItemName" name="ItemName" value="" autofocus>
-        </div>
-        <div class="field">
-            <label for="ItemBrand">Brand:</label>
-            <input type="text" id="ItemBrand" name="ItemBrand" value="">
-        </div>
-        <div class="field">
-            <label for="RequestedTime">When do you need it?</label>
-            <input type="datetime" id="RequestedTime" name="RequestedTime" value="">
-        </div>
-        <div class="field button">
-            <input type="submit" id="Save" name="Save" value="Save">
-        </div>
-    </div>
-    </form>
+    <h1 class="display-4">A Simple Grocery List</h1>
+    <h3 class="display-6">Create your home or login</h3>
 </div>

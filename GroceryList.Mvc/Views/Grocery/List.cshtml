@@ -1,0 +1,59 @@
+@model GroceryList.Mvc.Models.TripList
+@{
+    ViewData["Title"] = "Current List";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Current Grocery List</h1>
+    <h3>@ViewData["Message"]</h3>
+</div>
+<div>
+    @{
+        var hasItems = Model != null && Model.Items != null;
+        if (!hasItems) {
+            <h3>There are no items in your list</h3>
+        }
+    }
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3">Name</div>
+            <div class="col-md-3">Brand</div>
+            <div class="col-md-2">Time Requested</div>
+            <div class="col-md-2">Time Entered</div>
+            <div class="col-md-2">Who Entered</div>
+        </div>
+        @if (hasItems) {
+            foreach (var item in Model.Items) {
+                <div class="row">
+                <div class="col-md-3">@item.Name</div>
+                <div class="col-md-3">@item.Brand</div>
+                <div class="col-md-2">@item.RequestedTime</div>
+                <div class="col-md-2">@item.CreatedTime</div>
+                <div class="col-md-2">@item.CreatedBy</div>
+                </div>
+            }
+        }
+        <form method="POST" action="">
+        <div class="row">
+            <div class="col-md-3">
+                @*<label for="ItemName">Name:</label>*@
+                <input type="text" id="ItemName" name="ItemName" value="" autofocus>
+            </div>
+            <div class="col-md-3">
+                @*<label for="ItemBrand">Brand:</label>*@
+                <input type="text" id="ItemBrand" name="ItemBrand" value="">
+            </div>
+            <div class="col-md-2">
+                @*<label for="RequestedTime">When do you need it?</label>*@
+                <input type="date" id="RequestedTime" name="RequestedTime" value="">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-8"></div>
+            <div class="col-md-3 button">
+                <input type="submit" id="Save" name="Save" value="Save" class="btn btn-primary">
+            </div>
+        </div>
+        </form>
+    </div>
+</div>

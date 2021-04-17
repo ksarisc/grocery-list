@@ -15,9 +15,11 @@ namespace GroceryList.Mvc.Services
     public interface IDataService : IDisposable
     {
         //public DbConnection GetConnection();
-        public ValueTask<T> GetDataAsync<T>(AppUser user, DateTime? dateTime = null);
-        public ValueTask SetDataAsync<T>(AppUser user, T data);
+        public Task<T> GetDataAsync<T>(AppUser user, DateTime? dateTime = null);
+        public Task SetDataAsync<T>(AppUser user, T data);
         public DbConnection GetConnection(AppUser user);
+        public Task<bool> TableExists(AppUser user, string table, string createIfMissing = null);
+        public Task<bool> TableExists(DbConnection connection, string table, string createIfMissing = null);
     }
 
     public class DataService : IDataService
@@ -30,6 +32,7 @@ namespace GroceryList.Mvc.Services
         private const string dbfile = "grocerylist.sqlite";
         private const string current = "current.json";
         private const string dtformat = "yyyyMMdd_HHmmss";
+        private const string exists = "SELECT name FROM sqlite_master WHERE type = 'table' AND name = @TableName;";
 
         private readonly SqliteConnection conn;
         private readonly string dataPath;
@@ -87,7 +90,7 @@ namespace GroceryList.Mvc.Services
             return Path.Combine(GetHomePath(user), file);
         }
 
-        private async ValueTask<string> GetSession(AppUser user)
+        private async Task<string> GetSession(AppUser user)
         {
             var userId = user.GetId();
             //await Console.Out.WriteLineAsync($"GetSession: {userPath}|{userId}");
@@ -95,7 +98,7 @@ namespace GroceryList.Mvc.Services
             //     JsonSerializer
             return await File.ReadAllTextAsync(String.Format(userPath, userId));
         } // END GetSession
-        private async ValueTask SetSession(AppUser user, string modelType, string modelPath)
+        private async Task SetSession(AppUser user, string modelType, string modelPath)
         {
             // save the path somehow temporarily
             // probably should be saved to sqlite global or home specific later
@@ -112,7 +115,7 @@ namespace GroceryList.Mvc.Services
             await File.WriteAllTextAsync(String.Format(userPath, userId), modelPath);
         } // END SetSession
 
-        public async ValueTask<T> GetDataAsync<T>(AppUser user, DateTime? dateTime = null)
+        public async Task<T> GetDataAsync<T>(AppUser user, DateTime? dateTime = null)
         {
             var path = GetDataPath(user, dateTime);
             if (String.IsNullOrWhiteSpace(path))
@@ -133,7 +136,7 @@ namespace GroceryList.Mvc.Services
             }
         } // END GetDataAsync
 
-        public async ValueTask SetDataAsync<T>(AppUser user, T data)
+        public async Task SetDataAsync<T>(AppUser user, T data)
         {
             // if (!IsAllowed(user, path))
             // {
@@ -178,6 +181,47 @@ namespace GroceryList.Mvc.Services
             homes[homeId] = connStr;
             return new SqliteConnection(connStr);
         } // END GetConnection
+
+        public async Task<bool> TableExists(AppUser user, string table, string createIfMissing = null)
+        {
+            using (var conn = GetConnection(user))
+            {
+                return await TableExists(conn, table, createIfMissing);
+            }
+        } // END TableExists
+
+        public async Task<bool> TableExists(DbConnection connection, string table, string createIfMissing = null)
+        {
+            if (conn.State != System.Data.ConnectionState.Open)
+            {
+                await conn.OpenAsync();
+            }
+            using (var cmd = conn.CreateCommand())
+            {
+                cmd.CommandText = exists;
+                var pname = cmd.CreateParameter();
+                pname.ParameterName = "@TableName";
+                pname.Value = table;
+                cmd.Parameters.Add(pname);
+                using (var rdr = await cmd.ExecuteReaderAsync())
+                {
+                    if (rdr.HasRows)
+                    {
+                        return true;
+                    }
+                }
+            }
+            if (String.IsNullOrWhiteSpace(createIfMissing))
+            {
+                return false;
+            }
+            using (var cmd = conn.CreateCommand())
+            {
+                cmd.CommandText = createIfMissing;
+                await cmd.ExecuteNonQueryAsync();
+                return true;
+            }
+        } // END TableExists
 
         #region cleanup
         protected virtual void Dispose(bool disposing)
