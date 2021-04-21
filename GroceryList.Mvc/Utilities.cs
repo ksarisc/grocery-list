@@ -11,6 +11,10 @@ namespace GroceryList.Mvc
     internal static class Utilities
     {
         private const string guidFormat = "D";
+        public static string ToId(this Guid self)
+        {
+            return self.ToString(guidFormat);
+        }
 
         public static string GetId(this AppUser self)
         {

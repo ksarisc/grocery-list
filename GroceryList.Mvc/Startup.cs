@@ -1,3 +1,4 @@
+using GroceryList.Mvc.Models;
 using GroceryList.Mvc.Models.Config;
 using GroceryList.Mvc.Services;
 using Microsoft.AspNetCore.Authentication;
@@ -5,6 +6,7 @@ using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -25,15 +27,27 @@ namespace GroceryList.Mvc
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            Utilities.SetUser(Configuration);
-
+            //Utilities.SetUser(Configuration);
             services.AddControllersWithViews();
 
             // setup Datbase context?
 
+            services.Configure<DataConfig>(Configuration.GetSection(DataConfig.Data));
+            services.AddSingleton<IDataService, DataService>();
+
+            services.AddTransient<IUserStore<AppUser>, UserRepository>();
+            services.AddTransient<IRoleStore<AppRole>, RoleRepository>();
+            services.AddTransient<IGroceryRepository, GroceryRepository>();
+
+            services.AddIdentity<AppUser, AppRole>()
+                .AddDefaultTokenProviders();
+            // services.AddDefaultIdentity<AppUser>(options =>
+            //     options.SignIn.RequireConfirmedAccount = true)
+            //         .AddEntityFrameworkStores<ApplicationDbContext>();
             services.AddAuthentication()
                 .AddGoogle(googleOptions =>
                 {
+                    //terms
                     var googleSection = Configuration.GetSection("Authentication:Google");
                     googleOptions.ClientId = googleSection["ClientId"];
                     googleOptions.ClientSecret = googleSection["ClientSecret"];
@@ -42,9 +56,6 @@ namespace GroceryList.Mvc
                 // .AddTwitter(twitterOptions => { ... })
                 // .AddFacebook(facebookOptions => { ... });
                 ;
-            services.Configure<DataConfig>(Configuration.GetSection(DataConfig.Data));
-            services.AddSingleton<IDataService, DataService>();
-            services.AddSingleton<IGroceryRepository, GroceryRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -65,6 +76,7 @@ namespace GroceryList.Mvc
 
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>

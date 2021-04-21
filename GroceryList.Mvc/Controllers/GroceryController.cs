@@ -27,22 +27,21 @@ namespace GroceryList.Mvc.Controllers
         [HttpGet]
         public async Task<IActionResult> List()
         {
-            var user = Request.GetUser();
             var message = msgList;
             try
             {
-                var list = await grocery.GetAsync(user);
+                var list = await grocery.GetAsync();
                 ViewData["Message"] = message;
                 return View(list);
             }
             catch (ArgumentNullException eArg)
             {
-                _logger.LogError(eArg, $"GetList Arg Error: {user.GetContext()}: {message}");
+                _logger.LogError(eArg, $"GetList Arg Error: {Request.GetUser().GetContext()}: {message}");
                 ViewData["Message"] = eArg.Message;
             }
             catch (Exception e)
             {
-                _logger.LogError(e, $"GetList Error: {user.GetContext()}: {message}");
+                _logger.LogError(e, $"GetList Error: {Request.GetUser().GetContext()}: {message}");
                 ViewData["Message"] = "An unknown error has happened, please try again later";
             }
             return View();
@@ -51,23 +50,22 @@ namespace GroceryList.Mvc.Controllers
         [HttpPost]
         public async Task<IActionResult> List(TripItemRequest model)
         {
-            var user = Request.GetUser();
             var message = msgList;
             try
             {
-                var list = await grocery.AddItemAsync(user, model);
+                var list = await grocery.AddItemAsync(model);
                 ViewData["Message"] = message;
                 return View(list);
             }
             // trap null arg exceptions?
             catch (ArgumentNullException eArg)
             {
-                _logger.LogError(eArg, $"GetList Arg Error: {user.GetContext()}: {message}");
+                _logger.LogError(eArg, $"SetList Arg Error: {Request.GetUser().GetContext()}: {message}");
                 ViewData["Message"] = eArg.Message;
             }
             catch (Exception e)
             {
-                _logger.LogError(e, $"GetList Error: {user.GetContext()}: {message}");
+                _logger.LogError(e, $"SetList Error: {Request.GetUser().GetContext()}: {message}");
                 ViewData["Message"] = "An unknown error has happened, please try again later";
             }
 

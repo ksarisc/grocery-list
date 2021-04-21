@@ -12,6 +12,10 @@ namespace GroceryList.Mvc.Models
 
         public string IpAddress { get; set; }
 
+        public DateTime? CreatedTime { get; set; }
+
+        public bool Confirmed { get; set; }
+
         public static readonly AppUser Empty = new AppUser
         {
         };
