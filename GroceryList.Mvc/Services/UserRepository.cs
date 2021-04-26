@@ -27,8 +27,6 @@ namespace GroceryList.Mvc.Services
 
         public async Task<IdentityResult> CreateAsync(AppUser user, CancellationToken cancel)
         {
-            cancel.ThrowIfCancellationRequested();
-
             if (!user.Id.HasValue) {
                 user.Id = Guid.NewGuid();
             }
@@ -36,61 +34,33 @@ namespace GroceryList.Mvc.Services
                 user.CreatedTime = DateTime.UtcNow;
             }
 
-            using (var conn = data.GetConnection())
-            {
-                await conn.OpenAsync(cancel);
-                await conn.ExecuteAsync(insert, user);
-            }
+            await data.ExecuteAsync(insert, user, cancel);
 
             return IdentityResult.Success;
         } // END CreateAsync
 
         public async Task<IdentityResult> UpdateAsync(AppUser user, CancellationToken cancel)
         {
-            cancel.ThrowIfCancellationRequested();
-
-            using (var conn = data.GetConnection())
-            {
-                await conn.OpenAsync(cancel);
-                await conn.ExecuteAsync(update, user);
-            }
+            await data.ExecuteAsync(update, user, cancel);
 
             return IdentityResult.Success;
         } // END UpdateAsync
 
         public async Task<IdentityResult> DeleteAsync(AppUser user, CancellationToken cancel)
         {
-            cancel.ThrowIfCancellationRequested();
-
-            using (var conn = data.GetConnection())
-            {
-                await conn.OpenAsync(cancel);
-                await conn.ExecuteAsync(delete, user);
-            }
+            await data.ExecuteAsync(delete, user, cancel);
 
             return IdentityResult.Success;
         } // END DeleteAsync
-
-        private async Task<AppUser> Find(string where, DynamicParameters parameters, CancellationToken cancel)
-        {
-            cancel.ThrowIfCancellationRequested();
-
-            using (var conn = data.GetConnection())
-            {
-                await conn.OpenAsync(cancel);
-                var builder = new SqlBuilder();
-                builder.Where(where, parameters);
-                var template = builder.AddTemplate(select);;
-                return await conn.QuerySingleOrDefaultAsync<AppUser>(
-                    template.RawSql, template.Parameters);
-            }
-        } // END Find
 
         public async Task<AppUser> FindByIdAsync(string userId, CancellationToken cancel)
         {
             var parms = new DynamicParameters();
             parms.Add("@Id", userId);
-            return await Find(whereId, parms, cancel);
+            var builder = new SqlBuilder();
+            builder.Where(whereId, parms);
+            var template = builder.AddTemplate(select);
+            return await data.QuerySingleAsync<AppUser>(template, cancel);
         } // END FindByIdAsync
         public async Task<AppUser> FindByIdAsync(Guid userId, CancellationToken cancel)
         {
@@ -101,7 +71,10 @@ namespace GroceryList.Mvc.Services
         {
             var parms = new DynamicParameters();
             parms.Add("@Email", email);
-            return await Find("email = @Email", parms, cancel);
+            var builder = new SqlBuilder();
+            builder.Where("email = @Email", parms);
+            var template = builder.AddTemplate(select);
+            return await data.QuerySingleAsync<AppUser>(template, cancel);
         } // END FindByEmailAsync
 
         // normalizedUserName

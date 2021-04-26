@@ -30,42 +30,67 @@ namespace GroceryList.Mvc.Services
 
         public async Task<IdentityResult> CreateAsync(AppRole role, CancellationToken cancel)
         {
-            cancel.ThrowIfCancellationRequested();
-
-            using (var conn = data.GetConnection())
-            {
-                await conn.OpenAsync(cancel);
-                await conn.ExecuteAsync(insert, role);
-            }
+            await data.ExecuteAsync(insert, role, cancel);
 
             return IdentityResult.Success;
         } // END CreateAsync
 
         public async Task<IdentityResult> UpdateAsync(AppRole role, CancellationToken cancel)
         {
-            cancel.ThrowIfCancellationRequested();
-
-            using (var conn = data.GetConnection())
-            {
-                await conn.OpenAsync(cancel);
-                await conn.ExecuteAsync(update, role);
-            }
+            await data.ExecuteAsync(update, role, cancel);
 
             return IdentityResult.Success;
         } // END UpdateAsync
 
         public async Task<IdentityResult> DeleteAsync(AppRole role, CancellationToken cancel)
         {
-            cancel.ThrowIfCancellationRequested();
-
-            using (var conn = data.GetConnection())
-            {
-                await conn.OpenAsync(cancel);
-                await conn.ExecuteAsync(delete, role);
-            }
+            await data.ExecuteAsync(delete, role, cancel);
 
             return IdentityResult.Success;
         } // END DeleteAsync
+
+        public async Task<AppRole> FindByIdAsync(string roleId, CancellationToken cancel)
+        {
+            var parms = new DynamicParameters();
+            parms.Add("@Id", roleId);
+            var builder = new SqlBuilder();
+            builder.Where(whereId, parms);
+            var template = builder.AddTemplate(select);
+            return await data.QuerySingleAsync<AppRole>(template, cancel);
+        }
+
+        public async Task<AppRole> FindByNameAsync(string roleName, CancellationToken cancel)
+        {
+            var parms = new DynamicParameters();
+            parms.Add("@Name", roleName);
+            var builder = new SqlBuilder();
+            builder.Where("name = @Name", parms);
+            var template = builder.AddTemplate(select);
+            return await data.QuerySingleAsync<AppRole>(template, cancel);
+        }
+
+        public Task<string> GetRoleIdAsync(AppRole role, CancellationToken cancel)
+        {
+            return Task.FromResult(role.Id.ToString());
+        }
+        public Task<string> GetRoleNameAsync(AppRole role, CancellationToken cancel)
+        {
+            return Task.FromResult(role.Name);
+        }
+        public Task SetRoleNameAsync(AppRole role, string roleName, CancellationToken cancel)
+        {
+            role.Name = roleName;
+            return Task.FromResult(0);
+        }
+        public Task<string> GetNormalizedRoleNameAsync(AppRole role, CancellationToken cancel)
+        {
+            return Task.FromResult(String.Empty);
+        }
+        public Task SetNormalizedRoleNameAsync(AppRole role, string normalName, CancellationToken cancel)
+        {
+            //role.Name = normalName;
+            return Task.FromResult(0);
+        }
 
         public void Dispose() { }
     }

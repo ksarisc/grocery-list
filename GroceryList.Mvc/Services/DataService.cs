@@ -1,13 +1,16 @@
+using Dapper;
 using GroceryList.Mvc.Models;
 using GroceryList.Mvc.Models.Config;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 using System.IO;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace GroceryList.Mvc.Services
@@ -20,6 +23,8 @@ namespace GroceryList.Mvc.Services
         public DbConnection GetConnection(AppUser user);
         public Task<bool> TableExists(AppUser user, string table, string createIfMissing = null);
         public Task<bool> TableExists(DbConnection connection, string table, string createIfMissing = null);
+
+        public Task<int> ExecuteAsync(string query, object parameters, CancellationToken cancel);
     }
 
     public class DataService : IDataService
@@ -223,11 +228,49 @@ namespace GroceryList.Mvc.Services
             }
         } // END TableExists
 
+        public async Task<int> ExecuteAsync(string query, object parameters, CancellationToken cancel)
+        {
+            cancel.ThrowIfCancellationRequested();
+
+            if (conn.State != ConnectionState.Open)
+            {
+                await conn.OpenAsync(cancel);
+            }
+            return await conn.ExecuteAsync(query, parameters);
+        } // END ExecuteAsync
+
+        public async Task<T> QuerySingleAsync<T>(SqlBuilder.Template template, CancellationToken cancel)
+        {
+            cancel.ThrowIfCancellationRequested();
+
+            if (conn.State != ConnectionState.Open)
+            {
+                await conn.OpenAsync(cancel);
+            }
+
+            return await conn.QuerySingleOrDefaultAsync<T>(
+                template.RawSql, template.Parameters);
+        } // END QuerySingleAsync
+
+        public async Task<IEnumerable<T>> QueryAsync<T>(SqlBuilder.Template template, CancellationToken cancel)
+        {
+            cancel.ThrowIfCancellationRequested();
+
+            if (conn.State != ConnectionState.Open)
+            {
+                await conn.OpenAsync(cancel);
+            }
+
+            return await conn.QueryAsync<T>(template.RawSql, template.Parameters);
+        } // END QueryAsync
+
         #region cleanup
         protected virtual void Dispose(bool disposing)
         {
-            if (!disposing) return;
-            conn.Dispose();
+            if (disposing)
+            {
+                conn.Dispose();
+            }
         }
         public void Dispose()
         {
