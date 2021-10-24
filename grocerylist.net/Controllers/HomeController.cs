@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using grocerylist.net.Models;
+using grocerylist.net.ModelViews.Home;
 
 namespace grocerylist.net.Controllers
 {
@@ -20,6 +21,17 @@ namespace grocerylist.net.Controllers
 
         public IActionResult Index()
         {
+            return View();
+        }
+
+        public IActionResult Create()
+        {
+            return View();
+        }
+        [HttpPost]
+        public async Task<IActionResult> Create(CreateData model)
+        {
+            // build if not exists and start home
             return View();
         }
 

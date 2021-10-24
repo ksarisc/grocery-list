@@ -14,7 +14,7 @@ namespace grocerylist.net.Services.Grocery
         Task<Item> SaveAsync(HomeUser user, Item item);
         Task<IEnumerable<Item>> GetCurrentItemsAsync(HomeUser user);
         Task<IEnumerable<Item>> GetItemsAsync(HomeUser user, ItemsQuery query);
-        Task<Item> GetItemByIdAsync(HomeUser user, uint itemId);
+        Task<Item> GetItemByIdAsync(HomeUser user, int itemId);
         Task<PurchasedItem> PurchaseAsync(HomeUser user, Item item);
     }
 
@@ -100,7 +100,7 @@ namespace grocerylist.net.Services.Grocery
             }
         } // END GetItemsAsync
 
-        private async Task<Item> GetItemByIdAsync(string query, string connect, uint homeId, object parameter)
+        private async Task<Item> GetItemByIdAsync(string query, string connect, int homeId, object parameter)
         {
             using (var conn = factory.Create(connect))
             {
@@ -116,7 +116,7 @@ namespace grocerylist.net.Services.Grocery
             return null;
         } // END GetItemByIdAsync
 
-        public async Task<Item> GetItemByIdAsync(HomeUser user, uint itemId)
+        public async Task<Item> GetItemByIdAsync(HomeUser user, int itemId)
         {
             var parm = new { ItemId = itemId };
             var query = queryRepo.Get("ItemByIdQuery");
