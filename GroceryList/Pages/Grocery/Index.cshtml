@@ -1,0 +1,27 @@
+﻿@model List<GroceryList.Models.GroceryItem>
+@{
+	@ViewData["Title"]= "Current";
+}
+
+<table>
+	<thead>
+		<tr>
+			<th>Name</th>
+			<th>Brand</th>
+			<th>Price</th>
+			<th>Created</th>
+			<th>In Cart</th>
+		</tr>
+	</thead>
+	<tbody>
+@foreach (var item in Model) {
+		<tr>
+			<td>@item.Name</td>
+			<td>@item.Brand</td>
+			<td>@item.Price</td>
+			<td>@item.CreatedTime.Format(includeDate:true)</td>
+			<td>@(item.InCartTime != null ? "YES" : "")</td>
+		</tr>
+}
+	</tbody>
+</table>
