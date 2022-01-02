@@ -11,14 +11,36 @@ namespace GroceryList.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
+        private readonly Data.IHomeRepository home;
+        private readonly ILogger<HomeController> logger;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(Data.IHomeRepository homeRepository, ILogger<HomeController> homeLogger)
         {
-            _logger = logger;
+            home = homeRepository;
+            logger = homeLogger;
         }
 
+        [HttpGet]
         public IActionResult Index()
+        {
+            return View();
+        }
+        [HttpPost]
+        public async Task<IActionResult> Index([FromForm]string textHomeId)
+        {
+            ViewData["Message"] = "Not implemented yet!";
+
+            if (!(await home.ExistsAsync(textHomeId)))
+            {
+                ViewData["Message"] = $"Home ({textHomeId}) NOT Found";
+            }
+            await home.AddApproveeAsync(User, textHomeId);
+                //.AddAsync(model);
+
+            return View();
+        }
+
+        public IActionResult Approve()
         {
             return View();
         }

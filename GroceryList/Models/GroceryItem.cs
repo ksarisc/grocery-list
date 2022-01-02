@@ -20,6 +20,7 @@ namespace GroceryList.Models
     }
     public class GroceryItem : BaseItem
     {
+        [Key]
         public int Id { get; set; }
     }
 }
