@@ -19,13 +19,18 @@ namespace GroceryList.Data
             context = contextAccessor;
         }
 
-        public List<GroceryItem> GetGroceries()
+        public async Task<List<GroceryItem>> GetGroceriesAsync()
         {
             // get Home ID & correct current data file
 
         }
 
-        public GroceryItem Add(GroceryItemForm model)
+        /// <summary>
+        /// Adds/Updates current grocery list with specific item
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        public async Task<GroceryItem> AddAsync(GroceryItem model)
         {
         }
     }
