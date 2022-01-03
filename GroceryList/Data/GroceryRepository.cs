@@ -11,9 +11,9 @@ namespace GroceryList.Data
 {
     public class GroceryRepository
     {
-        private readonly DataFileService fileService;
+        private readonly IDataService fileService;
         private readonly IHttpContextAccessor context;
-        public GroceryRepository(DataFileService dataFileService, IHttpContextAccessor contextAccessor)
+        public GroceryRepository(IDataService dataFileService, IHttpContextAccessor contextAccessor)
         {
             fileService = dataFileService;
             context = contextAccessor;
