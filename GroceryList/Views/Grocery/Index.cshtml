@@ -1,0 +1,33 @@
+﻿@model List<GroceryList.Models.GroceryItem>
+@{
+	ViewData["Title"] = "Current";
+}
+@if (Model == null) {
+<h3>There's nothing in your list currently, click <a asp-route-homeId="@ViewData["HomeId"]" asp-controller="Grocery" asp-action="Add">here</a> to start one.</h3>
+} else {
+<table>
+	<thead>
+		<tr>
+			<th>Name</th>
+			<th>Brand</th>
+			<th>Price</th>
+			<th>Created</th>
+			<th>In Cart</th>
+		</tr>
+	</thead>
+	<tbody>
+		@* ADD *@
+		@foreach (var item in Model)
+		{
+			<tr>
+				<td>@item.Name</td>
+				<td>@item.Brand</td>
+				<td>@item.Price</td>
+				<td>@item.CreatedTime.Format(includeDate: true)</td>
+				<td>@(item.InCartTime != null ? "YES" : "")</td>
+				@* EDIT *@
+			</tr>
+		}
+	</tbody>
+</table>
+}

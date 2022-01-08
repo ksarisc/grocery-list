@@ -1,0 +1,24 @@
+﻿@model GroceryList.Models.Forms.GroceryItemForm
+@{
+	ViewData["Title"] = "Add Item";
+}
+<form method="post">
+	@*[Required][StringLength(50, MinimumLength = 4)]
+	Name*@
+	<div class="input-group">
+		<label asp-for="Name" />
+		<input asp-for="Name" />
+	</div>
+	@*[StringLength(50, MinimumLength = 2)]
+	Brand*@
+	<div class="input-group">
+		<label asp-for="Brand" />
+		<input asp-for="Brand" />
+	</div>
+	@*[StringLength(1000, MinimumLength = 4)]
+	Notes*@
+	<div class="input-group">
+		<label asp-for="Notes" />
+		<textarea asp-for="Notes" />
+	</div>
+</form>

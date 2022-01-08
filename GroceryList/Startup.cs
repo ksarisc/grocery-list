@@ -3,6 +3,7 @@ using GroceryList.Models.Config;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.AspNetCore.Mvc;
 //using Microsoft.AspNetCore.Identity;
 //using Microsoft.AspNetCore.Identity.UI;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +17,9 @@ using System.Threading.Tasks;
 
 namespace GroceryList
 {
+    // Test Home ID: c254f50f-10b5-4f89-af7a-bab17fe78c45
+    // https://localhost:44380/c254f50f-10b5-4f89-af7a-bab17fe78c45/grocery
+
     public class Startup
     {
         public Startup(IConfiguration configuration)
@@ -41,6 +45,7 @@ namespace GroceryList
             //    .AddEntityFrameworkStores<ApplicationDbContext>();
             services.AddRazorPages();
             //services.AddControllersWithViews(o => o.UseGeneralRoutePrefix("{homeId}"));//api/v{version:apiVersion}
+            services.AddMvc(); //o => o.Filters.Add(new Microsoft.AspNetCore.Mvc.Authorization.AllowAnonymousFilter()));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -68,7 +73,7 @@ namespace GroceryList
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapRazorPages();
+                endpoints.MapDefaultControllerRoute();
             });
         }
     }
