@@ -1,9 +1,10 @@
 using GroceryList.Data;
+using GroceryList.Models.Config;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI;
+//using Microsoft.AspNetCore.Identity;
+//using Microsoft.AspNetCore.Identity.UI;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,11 +28,19 @@ namespace GroceryList
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddHttpContextAccessor();
+
+            services.Configure<DataServiceConfig>(Configuration.GetSection("DataService"));
+            services.AddScoped<Services.IDataService, Services.DataService>();
+            services.AddScoped<IUserDataRepository, UserDataRepository>();
+            services.AddScoped<IGroceryRepository, GroceryRepository>();
+
             //services.AddDbContext<ApplicationDbContext>(o => o.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
             //services.AddDatabaseDeveloperPageExceptionFilter();
             //services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
             //    .AddEntityFrameworkStores<ApplicationDbContext>();
             services.AddRazorPages();
+            //services.AddControllersWithViews(o => o.UseGeneralRoutePrefix("{homeId}"));//api/v{version:apiVersion}
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -6,6 +6,9 @@ namespace GroceryList.Models
     public class GroceryItem
     {
         [Required]
+        [StringLength(50, MinimumLength = 20)]
+        public string HomeId { get; set; }
+        [Required]
         [StringLength(50, MinimumLength = 4)]
         public string Name { get; set; }
         [StringLength(50, MinimumLength = 2)]

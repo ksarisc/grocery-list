@@ -6,11 +6,22 @@ using System.Threading.Tasks;
 
 namespace GroceryList.Controllers
 {
+    [Route("{homeId}/[controller]")]
     public class GroceryController : Controller
     {
-        public IActionResult Index()
+        private readonly Data.IGroceryRepository groceryRepo;
+        public GroceryController(Data.IGroceryRepository groceryRepository)
         {
-            return View();
+            groceryRepo = groceryRepository;
         }
+
+        public async Task<IActionResult> Index(string homeId)
+        {
+            // display the current list
+            var list = await groceryRepo.GetListAsync(homeId);
+            return View(list);
+        }
+
+        // add/edit
     }
 }

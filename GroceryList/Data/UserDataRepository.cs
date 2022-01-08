@@ -9,7 +9,7 @@ namespace GroceryList.Data
     {
     }
 
-    public class UserDataRepository
+    public class UserDataRepository : IUserDataRepository
     {
     }
 }
