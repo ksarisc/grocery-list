@@ -8,26 +8,24 @@ using System.Threading.Tasks;
 namespace GroceryList.Services
 {
     /// <summary>
-    /// Principle: connect "a" file system to retrieve files based on home indicated in route
+    /// Principle: connect to a "file system" to retrieve files based on home indicated in route
     /// </summary>
     public interface IDataService
     {
         public Task<bool> HomeExistsAsync(string homeId);
         public Task<Models.Home> AddHomeAsync(Models.Home home);
 
-        public Task<T> GetAsync<T>(string homeId, string fileName);
-        public Task SetAsync(string homeId, string fileName, object data);
+        public Task<T> GetAsync<T>(string homeId, string storeName);
+        public Task SetAsync(string homeId, string storeName, object data);
     }
 
     public class DataService : IDataService
     {
         private readonly string dataPath;
-        //private readonly JsonSerializerOptions jsonOptions;
 
         public DataService(IOptions<DataServiceConfig> options)
         {
             dataPath = options.Value.DataPath;
-            //jsonOptions = new JsonSerializerOptions { };
         }
 
         private string GetFilePath(in string homeId, in string fileName)
@@ -49,6 +47,7 @@ namespace GroceryList.Services
 
             Directory.CreateDirectory(path);
             Directory.CreateDirectory(Path.Combine(path, "bak"));
+            Directory.CreateDirectory(Path.Combine(path, "trip"));
 
             var hfile = Path.Combine(path, "home.json");
             using var file = new FileStream(hfile, FileMode.Create, FileAccess.Write, FileShare.Read, 8192, true);
@@ -57,9 +56,9 @@ namespace GroceryList.Services
             return home;
         } // END AddHomeAsync
 
-        public async Task<T> GetAsync<T>(string homeId, string fileName)
+        public async Task<T> GetAsync<T>(string homeId, string storeName)
         {
-            var path = GetFilePath(homeId, fileName);
+            var path = GetFilePath(homeId, storeName);
             if (!File.Exists(path))
             {
                 return default(T);
@@ -68,9 +67,9 @@ namespace GroceryList.Services
             return await JsonSerializer.DeserializeAsync<T>(file); //, jsonOptions, cancel);
         }
 
-        public async Task SetAsync(string homeId, string fileName, object data)
+        public async Task SetAsync(string homeId, string storeName, object data)
         {
-            var path = GetFilePath(homeId, fileName);
+            var path = GetFilePath(homeId, storeName);
             // ?? backup/archive ??
             if (File.Exists(path))
             {

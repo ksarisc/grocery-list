@@ -16,9 +16,15 @@ namespace GroceryList.Data
         /// <summary>
         /// Adds/Updates current grocery list with specific item
         /// </summary>
-        /// <param name="model"></param>
-        /// <returns></returns>
+        /// <param name="model">GroceryItem</param>
+        /// <returns>GroceryItem</returns>
         public Task<GroceryItem> AddAsync(GroceryItem model);
+        /// <summary>
+        /// Remove specific item from current grocery list
+        /// </summary>
+        /// <param name="model">GroceryItem</param>
+        /// <returns>GroceryItem</returns>
+        public Task<GroceryItem> DeleteAsync(GroceryItem model);
     }
 
     public class GroceryRepository : IGroceryRepository
@@ -39,17 +45,16 @@ namespace GroceryList.Data
             return await fileService.GetAsync<List<GroceryItem>>(homeId, currentFile);
         }
 
-        /// <summary>
-        /// Adds/Updates current grocery list with specific item
-        /// </summary>
-        /// <param name="model"></param>
-        /// <returns></returns>
         public async Task<GroceryItem> AddAsync(GroceryItem model)
         {
             if (string.IsNullOrWhiteSpace(model?.HomeId)) return null;
             // validate item
 
-            //model.Id = ""
+            // initialize
+            if (string.IsNullOrWhiteSpace(model.Id))
+            {
+                model.Id = Guid.NewGuid().ToString();
+            }
 
             var list = await GetListAsync(model.HomeId);
             var found = false;
@@ -57,6 +62,7 @@ namespace GroceryList.Data
 
             for (int i = 0; i != list.Count; i++)
             {
+                // ?? check by name & id ??
                 if (list[i].Name.Equals(model.Name, StringComparison.OrdinalIgnoreCase))
                 {
                     found = true;
@@ -71,6 +77,30 @@ namespace GroceryList.Data
 
             await fileService.SetAsync(model.HomeId, currentFile, list);
             return model;
-        }
+        } // END AddAsync
+
+        public async Task<GroceryItem> DeleteAsync(GroceryItem model)
+        {
+            // ?? throw ??
+            if (string.IsNullOrWhiteSpace(model?.Id)) return null;
+            if (string.IsNullOrWhiteSpace(model?.HomeId)) return null;
+
+            var list = await GetListAsync(model.HomeId);
+
+            if (list == null) throw new ArgumentOutOfRangeException("No List Found");
+
+            list.RemoveAll(g =>
+            {
+                if (g.Id.Equals(model.Id, StringComparison.Ordinal))
+                {
+                    model = g;
+                    return true;
+                }
+                return false;
+            });
+
+            await fileService.SetAsync(model.HomeId, currentFile, list);
+            return model;
+        } // END DeleteAsync
     }
 }

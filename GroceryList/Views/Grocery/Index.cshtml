@@ -5,6 +5,20 @@
 <div class="text-center">
 	<h1>@ViewData["Title"]</h1>
 </div>
+@if (TempData["InfoMessage"] != null)
+{
+	<div class="text-center alert-info">
+		<h5>@TempData["InfoMessage"]</h5>
+		@{ TempData["InfoMessage"] = null; }
+	</div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+	<div class="text-center alert-warning">
+		<h5>@TempData["ErrorMessage"]</h5>
+		@{ TempData["ErrorMessage"] = null; }
+	</div>
+}
 
 @if (Model == null)
 {
@@ -12,14 +26,17 @@
 }
 else
 {
-	<table>
+	<table class="table">
 		<thead>
 			<tr>
+				<th>Delete</th>
 				<th>Name</th>
 				<th>Brand</th>
 				<th>Price</th>
 				<th>Created</th>
 				<th>In Cart</th>
+				<th>Edit</th>
+				<th>To Cart</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -27,14 +44,22 @@ else
 			@foreach (var item in Model)
 			{
 				<tr>
+					<td><a href="@Url.GetGroceryUrl(ViewContext, "Delete", itemId: item.Id)">delete</a></td>
 					<td>@item.Name</td>
 					<td>@item.Brand</td>
 					<td>@item.Price</td>
 					<td>@item.CreatedTime.Format(includeDate: true)</td>
 					<td>@(item.InCartTime != null ? "YES" : "")</td>
 					@* EDIT *@
+					<td><a href="@Url.GetGroceryUrl(ViewContext, "Edit", itemId: item.Id)">edit</a></td>
+					<td><a href="@Url.GetGroceryUrl(ViewContext, "ToCart", itemId: item.Id)">add</a></td>
 				</tr>
 			}
 		</tbody>
+
+		<div class="form-group">
+			<input type="button" value="Checkout" class="btn btn-primary"
+					 onclick="location.href='@Url.GetGroceryUrl(ViewContext, "Checkout")';" />
+		</div>
 	</table>
 }
