@@ -79,6 +79,7 @@ namespace GroceryList.Controllers
         [HttpGet("edit/{itemId}")]
         public async Task<IActionResult> Edit([FromRoute] string homeId, [FromRoute] string itemId)
         {
+            this.SetHomeId(homeId);
             if (string.IsNullOrWhiteSpace(itemId))
             {
                 TempData["ErrorMessage"] = $"No item specified";
@@ -93,6 +94,7 @@ namespace GroceryList.Controllers
         public async Task<IActionResult> Edit([FromRoute] string homeId, [FromRoute] string itemId,
             [FromForm] Models.GroceryItem model)
         {
+            this.SetHomeId(homeId);
             if (string.IsNullOrWhiteSpace(itemId) || model == null || string.IsNullOrWhiteSpace(model.Id))
             {
                 TempData["ErrorMessage"] = $"No item specified";
