@@ -1,24 +1,32 @@
 ﻿@model GroceryList.Models.Forms.GroceryItemForm
 @{
-	ViewData["Title"] = "Add Item";
+	ViewData["Title"] = "Add Item to Grocery List";
 }
+<div class="text-center">
+	<h1>@ViewData["Title"]</h1>
+</div>
+
 <form method="post">
-	@*[Required][StringLength(50, MinimumLength = 4)]
-	Name*@
-	<div class="input-group">
-		<label asp-for="Name" />
-		<input asp-for="Name" />
+	<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+	<div class="form-group">
+		<label asp-for="Name" class="control-label"></label>
+		<input asp-for="Name" class="form-control" autofocus>
+		<span asp-validation-for="Name" class="text-danger"></span>
 	</div>
-	@*[StringLength(50, MinimumLength = 2)]
-	Brand*@
-	<div class="input-group">
-		<label asp-for="Brand" />
-		<input asp-for="Brand" />
+	<div class="form-group">
+		<label asp-for="Brand" class="control-label"></label>
+		<input asp-for="Brand" class="form-control">
+		<span asp-validation-for="Brand" class="text-danger"></span>
 	</div>
-	@*[StringLength(1000, MinimumLength = 4)]
-	Notes*@
-	<div class="input-group">
-		<label asp-for="Notes" />
-		<textarea asp-for="Notes" />
+	<div class="form-group">
+		<label asp-for="Notes" class="control-label"></label>
+		<textarea asp-for="Notes" class="form-control"></textarea>
+		<span asp-validation-for="Notes" class="text-danger"></span>
+	</div>
+	<div class="form-group">
+		<input type="submit" id="submit" name="submit" value="Add" class="btn btn-primary" />
+		<input type="button" value="Cancel" class="btn btn-secondary"
+				 onclick="location.href='@Url.Action("Index","Grocery", new { homeId = ViewData["HomeId"] })';" />
 	</div>
 </form>

@@ -19,6 +19,8 @@ namespace GroceryList.Controllers
             logger = groceryLogger;
         }
 
+        [Route("")]
+        [Route("index")]
         public async Task<IActionResult> Index(string homeId)
         {
             ViewData["HomeId"] = homeId;
@@ -28,39 +30,42 @@ namespace GroceryList.Controllers
         }
 
         // add/edit
-        [HttpGet]
+        [HttpGet("add")]
         public IActionResult Add(string homeId)
         {
             ViewData["HomeId"] = homeId;
             return View();
         }
-        [HttpPost]
+        [HttpPost("add")]
         public async Task<IActionResult> Add([FromRoute] string homeId, [FromForm] GroceryItemForm formModel)
         {
             ViewData["HomeId"] = homeId;
 
-            try
+            if (ModelState.IsValid)
             {
-                var model = new Models.GroceryItem
+                try
                 {
-                    HomeId = homeId,
-                    Name = formModel.Name,
-                    Brand = formModel.Brand,
-                    Notes = formModel.Notes,
-                    //Price = formModel.Price,
-                    CreatedTime = DateTimeOffset.UtcNow,
-                    CreatedUser = HttpContext.Connection.RemoteIpAddress.ToString(),
-                    //InCartTime,InCartUser,
-                    //PurchasedTime,PurchasedUser,
-                };
-                model = await groceryRepo.AddAsync(model);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Add Error: {0}", formModel);
-                ViewData["ErrorMessage"] = "Unable to add the item";
+                    var model = new Models.GroceryItem
+                    {
+                        HomeId = homeId,
+                        Name = formModel.Name,
+                        Brand = formModel.Brand,
+                        Notes = formModel.Notes,
+                        //Price = formModel.Price,
+                        CreatedTime = DateTimeOffset.UtcNow,
+                        CreatedUser = HttpContext.Connection.RemoteIpAddress.ToString(),
+                        //InCartTime,InCartUser,
+                        //PurchasedTime,PurchasedUser,
+                    };
+                    model = await groceryRepo.AddAsync(model);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Add Error: {0}", formModel);
+                    ViewData["ErrorMessage"] = "Unable to add the item";
+                }
             }
             return View(formModel);
-        }
+        } // END Add
     }
 }

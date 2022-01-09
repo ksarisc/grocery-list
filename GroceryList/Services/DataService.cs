@@ -30,6 +30,11 @@ namespace GroceryList.Services
             //jsonOptions = new JsonSerializerOptions { };
         }
 
+        private string GetFilePath(in string homeId, in string fileName)
+        {
+            return Path.Combine(dataPath, homeId, $"{fileName}.json");
+        }
+
         public Task<bool> HomeExistsAsync(string homeId)
         {
             return Task.FromResult(Directory.Exists(Path.Combine(dataPath, homeId)));
@@ -54,7 +59,7 @@ namespace GroceryList.Services
 
         public async Task<T> GetAsync<T>(string homeId, string fileName)
         {
-            var path = Path.Combine(dataPath, homeId, fileName);
+            var path = GetFilePath(homeId, fileName);
             if (!File.Exists(path))
             {
                 return default(T);
@@ -65,7 +70,7 @@ namespace GroceryList.Services
 
         public async Task SetAsync(string homeId, string fileName, object data)
         {
-            var path = Path.Combine(dataPath, homeId, fileName);
+            var path = GetFilePath(homeId, fileName);
             // ?? backup/archive ??
             if (File.Exists(path))
             {

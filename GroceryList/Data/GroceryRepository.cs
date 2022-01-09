@@ -53,6 +53,8 @@ namespace GroceryList.Data
 
             var list = await GetListAsync(model.HomeId);
             var found = false;
+            if (list == null) list = new List<GroceryItem>();
+
             for (int i = 0; i != list.Count; i++)
             {
                 if (list[i].Name.Equals(model.Name, StringComparison.OrdinalIgnoreCase))

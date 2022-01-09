@@ -7,6 +7,7 @@ namespace GroceryList.Models.Forms
     {
         [Required]
         [StringLength(50, MinimumLength = 4)]
+        //[Display(Name=)]
         public string Name { get; set; }
         [StringLength(50, MinimumLength = 2)]
         public string Brand { get; set; }
