@@ -63,6 +63,8 @@ namespace GroceryList.Controllers
                         //PurchasedTime,PurchasedUser,
                     };
                     model = await groceryRepo.AddAsync(model);
+                    TempData["InfoMessage"] = $"{model.Name} added to list";
+                    TempData["ErrorMessage"] = null;
                     return this.RedirectToGrocery();
                 }
                 catch (Exception ex)
@@ -74,17 +76,45 @@ namespace GroceryList.Controllers
             return View(formModel);
         } // END Add
 
-        [Route("edit/{itemId}")]
-        public async Task<IActionResult> Edit([FromRoute] string homeId, string itemId)
+        [HttpGet("edit/{itemId}")]
+        public async Task<IActionResult> Edit([FromRoute] string homeId, [FromRoute] string itemId)
         {
             if (string.IsNullOrWhiteSpace(itemId))
             {
                 TempData["ErrorMessage"] = $"No item specified";
                 return this.RedirectToGrocery(homeId);
             }
+            //TempData["ErrorMessage"] = null; //$"Unable to edit item ({itemId})";
+            //return this.RedirectToGrocery(homeId);
+            var model = await groceryRepo.GetItemAsync(homeId, itemId);
+            return View(model);
+        }
+        [HttpPost("edit/{itemId}")]
+        public async Task<IActionResult> Edit([FromRoute] string homeId, [FromRoute] string itemId,
+            [FromForm] Models.GroceryItem model)
+        {
+            if (string.IsNullOrWhiteSpace(itemId) || model == null || string.IsNullOrWhiteSpace(model.Id))
+            {
+                TempData["ErrorMessage"] = $"No item specified";
+                return this.RedirectToGrocery(homeId);
+            }
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    model = await groceryRepo.AddAsync(model);
+                    TempData["InfoMessage"] = $"{model.Name} edited";
+                    TempData["ErrorMessage"] = null;
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Edit Error ({0}): {0}", homeId, model);
+                    ViewData["ErrorMessage"] = "Unable to add the item";
+                }
+            }
             TempData["ErrorMessage"] = $"Unable to edit item ({itemId})";
             return this.RedirectToGrocery(homeId);
-        }
+        } // END Edit
 
         [HttpGet("delete/{itemId}")]
         public async Task<IActionResult> Delete([FromRoute] string homeId, string itemId)
@@ -126,13 +156,7 @@ namespace GroceryList.Controllers
 
             try
             {
-                var list = await groceryRepo.GetListAsync(homeId);
-                if (list == null)
-                {
-                    TempData["ErrorMessage"] = $"Missing grocery list for home ({homeId})";
-                    return this.RedirectToGrocery(homeId);
-                }
-                var model = list.FirstOrDefault(g => g.Id.Equals(itemId, StringComparison.Ordinal));
+                var model = await groceryRepo.GetItemAsync(homeId, itemId);
                 if (model == null)
                 {
                     TempData["ErrorMessage"] = $"Missing grocery item ({itemId})";
@@ -156,9 +180,22 @@ namespace GroceryList.Controllers
         [Route("checkout")]
         public async Task<IActionResult> Checkout([FromRoute] string homeId)
         {
-            // checkout all items currently in cart
-            TempData["ErrorMessage"] = $"Unable to checkout cart";
+            List<Models.GroceryItem> list = null;
+            //TempData["ErrorMessage"] = $"Unable to checkout cart";
+
+            try
+            {
+                // checkout all items currently in cart
+                list = await groceryRepo.CheckoutAsync(homeId);
+                TempData["InfoMessage"] = $"{list.Count} items marked as purchased";
+                TempData["ErrorMessage"] = null;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Checkout Error: {0} (InCart: {1})", homeId, list);
+                ViewData["ErrorMessage"] = "Checkout failed";
+            }
             return this.RedirectToGrocery(homeId);
-        }
+        } // END Checkout
     }
 }

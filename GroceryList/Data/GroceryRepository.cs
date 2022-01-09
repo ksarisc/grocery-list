@@ -12,6 +12,7 @@ namespace GroceryList.Data
     public interface IGroceryRepository
     {
         public Task<List<GroceryItem>> GetListAsync(string homeId);
+        public Task<GroceryItem> GetItemAsync(string homeId, string itemId);
 
         /// <summary>
         /// Adds/Updates current grocery list with specific item
@@ -25,6 +26,8 @@ namespace GroceryList.Data
         /// <param name="model">GroceryItem</param>
         /// <returns>GroceryItem</returns>
         public Task<GroceryItem> DeleteAsync(GroceryItem model);
+
+        public Task<List<GroceryItem>> CheckoutAsync(string homeId);
     }
 
     public class GroceryRepository : IGroceryRepository
@@ -43,6 +46,14 @@ namespace GroceryList.Data
         {
             // get Home ID & correct current data file
             return await fileService.GetAsync<List<GroceryItem>>(homeId, currentFile);
+        }
+        public async Task<GroceryItem> GetItemAsync(string homeId, string itemId)
+        {
+            var list = await fileService.GetAsync<List<GroceryItem>>(homeId, currentFile);
+            if (list == null) return null;
+            if (!list.Any()) return null;
+
+            return list.FirstOrDefault(g => g.Id.Equals(itemId, StringComparison.Ordinal));
         }
 
         public async Task<GroceryItem> AddAsync(GroceryItem model)
@@ -102,5 +113,41 @@ namespace GroceryList.Data
             await fileService.SetAsync(model.HomeId, currentFile, list);
             return model;
         } // END DeleteAsync
+
+        public async Task<List<GroceryItem>> CheckoutAsync(string homeId)
+        {
+            // get the list of items in cart
+            var list = await GetListAsync(homeId);
+            var origList = list.ToArray();
+            var inCart = list.Where(g => g.InCartTime != null).ToList();
+            inCart.ForEach(g =>
+            {
+                list.RemoveAll(gl => gl.Id.Equals(g.Id, StringComparison.Ordinal));
+            });
+
+            // save the remaining list
+            await fileService.SetAsync(homeId, currentFile, list);
+
+            // save the trip
+            try
+            {
+                var tripRqst = new DataRequest
+                {
+                    HomeId = homeId,
+                    StoreName = currentFile,
+                    ActionName = "trip",
+                };
+                await fileService.SetAsync(tripRqst, inCart);
+            }
+            catch (Exception)
+            {
+                // ?? rollback on error here ??
+                await fileService.SetAsync(homeId, currentFile, origList);
+                throw;
+            }
+
+            // return the trip items
+            return inCart;
+        } // END CheckoutAsync
     }
 }
