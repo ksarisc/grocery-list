@@ -27,6 +27,8 @@ namespace GroceryList.Services
 
         public DataService(IOptions<DataServiceConfig> options)
         {
+            // need to be able to define the base (for different types of data)
+            // also need to have a better locking strategy for updates (none right now)
             dataPath = options.Value.DataPath;
         }
 
@@ -113,9 +115,16 @@ namespace GroceryList.Services
                 readFile.SetLength(0);
                 //File.Move(path, bak);
             }
-            using var file = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Read, 8192, true);
-            await JsonSerializer.SerializeAsync(file, data); //, jsonOptions, cancel);
-        }
+            if (data != null)
+            {
+                using var file = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Read, 8192, true);
+                await JsonSerializer.SerializeAsync(file, data); //, jsonOptions, cancel);
+            }
+            else
+            {
+                File.Delete(path);
+            }
+        } // END SetAsync
 
         public async Task SetAsync(Models.DataRequest request, object data)
         {

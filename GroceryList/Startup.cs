@@ -32,7 +32,7 @@ namespace GroceryList
 
             services.Configure<DataServiceConfig>(Configuration.GetSection("DataService"));
             services.AddScoped<Services.IDataService, Services.DataService>();
-            services.AddScoped<IUserDataRepository, UserDataRepository>();
+            //services.AddScoped<IUserDataRepository, UserDataRepository>();
             services.AddScoped<IGroceryRepository, GroceryRepository>();
 
             services.AddScoped<Services.HomeRouteFilter>(); // should this be Transient?
