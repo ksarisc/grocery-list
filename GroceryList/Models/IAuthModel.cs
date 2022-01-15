@@ -3,13 +3,9 @@ using System.Text.Json.Serialization;
 
 namespace GroceryList.Models
 {
-    public class AppRole
+    public interface IAuthModel
     {
         public string Id { get; set; }
-
-        public string Name { get; set; }
-
-        public string NormalizedName { get; set; }
 
         public DateTimeOffset CreatedTime { get; set; }
 

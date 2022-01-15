@@ -71,7 +71,7 @@ namespace GroceryList.Data
             }
 
             // is get needed at all, since we're just setting is at the end
-            var dataUser = await fileService.GetAsync<AppUser>(folder, user.Id);
+            var dataUser = await GetAsync(user.Id);
             if (dataUser != null)
             {
                 dataUser.UserName = user.UserName;
@@ -112,7 +112,7 @@ namespace GroceryList.Data
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var dataUser = await fileService.GetAsync<AppUser>(folder, user.Id);
+            var dataUser = await GetAsync(user.Id);
             // back it up & delete
             await fileService.SetAsync(folder, user.Id, null);
 
