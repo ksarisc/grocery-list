@@ -100,22 +100,24 @@ namespace GroceryList.Controllers
                 TempData["ErrorMessage"] = $"No item specified";
                 return this.RedirectToGrocery(homeId);
             }
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                try
-                {
-                    model = await groceryRepo.AddAsync(model);
-                    TempData["InfoMessage"] = $"{model.Name} edited";
-                    TempData["ErrorMessage"] = null;
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, "Edit Error ({0}): {0}", homeId, model);
-                    ViewData["ErrorMessage"] = "Unable to add the item";
-                }
+                TempData["ErrorMessage"] = $"Unable to edit item ({itemId})";
+                return View(model);
             }
-            TempData["ErrorMessage"] = $"Unable to edit item ({itemId})";
-            return this.RedirectToGrocery(homeId);
+            try
+            {
+                model = await groceryRepo.AddAsync(model);
+                TempData["InfoMessage"] = $"{model.Name} edited";
+                TempData["ErrorMessage"] = null;
+                return this.RedirectToGrocery(homeId);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Edit Error ({0}): {0}", homeId, model);
+                ViewData["ErrorMessage"] = "Unable to edit the item";
+            }
+            return View(model);
         } // END Edit
 
         [HttpGet("delete/{itemId}")]
@@ -179,16 +181,37 @@ namespace GroceryList.Controllers
             return this.RedirectToGrocery(homeId);
         }
 
-        [Route("checkout")]
+        [HttpGet("checkout")]
         public async Task<IActionResult> Checkout([FromRoute] string homeId)
         {
-            List<Models.GroceryItem> list = null;
             //TempData["ErrorMessage"] = $"Unable to checkout cart";
 
             try
             {
                 // checkout all items currently in cart
-                list = await groceryRepo.CheckoutAsync(homeId);
+                var list = await groceryRepo.GetCheckoutAsync(homeId);
+                return View(new CheckoutForm
+                {
+                    HomeId = homeId,
+                    Items = list,
+                });
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Checkout.Get Error: {0}", homeId);
+                ViewData["ErrorMessage"] = "Checkout failed";
+            }
+            return this.RedirectToGrocery(homeId);
+        } // END Checkout
+        [HttpPost("checkout")]
+        public async Task<IActionResult> Checkout([FromRoute] string homeId, CheckoutForm model)
+        {
+            List<Models.GroceryItem> list = null;
+
+            try
+            {
+                // checkout all items currently in cart
+                list = await groceryRepo.CheckoutAsync(homeId, model.ItemIds);
                 TempData["InfoMessage"] = $"{list.Count} items marked as purchased";
                 TempData["ErrorMessage"] = null;
             }

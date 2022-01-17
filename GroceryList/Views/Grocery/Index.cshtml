@@ -6,20 +6,7 @@
 <div class="text-center">
 	<h1>@ViewData["Title"]</h1>
 </div>
-@if (TempData["InfoMessage"] != null)
-{
-	<div class="text-center alert-info">
-		<h5>@TempData["InfoMessage"]</h5>
-		@{ TempData["InfoMessage"] = null; }
-	</div>
-}
-@if (TempData["ErrorMessage"] != null)
-{
-	<div class="text-center alert-warning">
-		<h5>@TempData["ErrorMessage"]</h5>
-		@{ TempData["ErrorMessage"] = null; }
-	</div>
-}
+<partial name="_MessagePartial" />
 
 @if (Model == null)
 {

@@ -27,7 +27,8 @@ namespace GroceryList.Data
         /// <returns>GroceryItem</returns>
         public Task<GroceryItem> DeleteAsync(GroceryItem model);
 
-        public Task<List<GroceryItem>> CheckoutAsync(string homeId);
+        public Task<List<GroceryItem>> GetCheckoutAsync(string homeId);
+        public Task<List<GroceryItem>> CheckoutAsync(string homeId, List<string> checkoutItemIds);
     }
 
     public class GroceryRepository : IGroceryRepository
@@ -114,15 +115,59 @@ namespace GroceryList.Data
             return model;
         } // END DeleteAsync
 
-        public async Task<List<GroceryItem>> CheckoutAsync(string homeId)
+        //public async Task<List<GroceryItem>> CheckoutAsync(string homeId)
+        //{
+        //    // get the list of items in cart
+        //    var list = await GetListAsync(homeId);
+        //    var origList = list.ToArray();
+        //    var inCart = list.Where(g => g.InCartTime != null).ToList();
+        //    inCart.ForEach(g =>
+        //    {
+        //        list.RemoveAll(gl => gl.Id.Equals(g.Id, StringComparison.Ordinal));
+        //    });
+
+        //    // save the remaining list
+        //    await fileService.SetAsync(homeId, currentFile, list);
+
+        //    // save the trip
+        //    try
+        //    {
+        //        var tripRqst = new DataRequest
+        //        {
+        //            HomeId = homeId,
+        //            StoreName = currentFile,
+        //            ActionName = "trip",
+        //        };
+        //        await fileService.SetAsync(tripRqst, inCart);
+        //    }
+        //    catch (Exception)
+        //    {
+        //        // ?? rollback on error here ??
+        //        await fileService.SetAsync(homeId, currentFile, origList);
+        //        throw;
+        //    }
+
+        //    // return the trip items
+        //    return inCart;
+        //} // END CheckoutAsync
+        public async Task<List<GroceryItem>> GetCheckoutAsync(string homeId)
+        {
+            // get the list of items in cart
+            var list = await GetListAsync(homeId);
+            return list.Where(g => g.InCartTime != null).ToList();
+        }
+        public async Task<List<GroceryItem>> CheckoutAsync(string homeId, List<string> checkoutItemIds)
         {
             // get the list of items in cart
             var list = await GetListAsync(homeId);
             var origList = list.ToArray();
-            var inCart = list.Where(g => g.InCartTime != null).ToList();
-            inCart.ForEach(g =>
+            var inCart = new List<GroceryItem>();
+            checkoutItemIds.ForEach(g =>
             {
-                list.RemoveAll(gl => gl.Id.Equals(g.Id, StringComparison.Ordinal));
+                // add item from current to in cart
+                var index = list.FindIndex(gl => gl.Id.Equals(g, StringComparison.Ordinal));
+                inCart.Add(list[index]);
+                list.RemoveAt(index);
             });
 
             // save the remaining list

@@ -1,0 +1,58 @@
+﻿@model GroceryList.Models.Forms.CheckoutForm
+@{
+	ViewData["Title"] = "Checkout";
+}
+<div class="text-center">
+	<h1>@ViewData["Title"]</h1>
+</div>
+<partial name="_MessagePartial" />
+
+<table class="table">
+	<thead>
+		<tr>
+			<th>Name</th>
+			<th>Brand</th>
+			<th>Price</th>
+			<th>Created</th>
+			<th>Added to Cart</th>
+			<th>Checkout</th>
+		</tr>
+	</thead>
+	<tbody>
+		@* ADD *@
+		@foreach (var item in Model.Items)
+		{
+			<tr data-id="@item.Id">@{ Model.ItemIds.Add(item.Id); }
+				<td>@item.Name</td>
+				<td>@item.Brand</td>
+				<td>@item.Price</td>
+				<td>@item.CreatedTime.Format(includeDate: false)</td>
+				<td>@item.InCartTime.Format(includeDate: true)</td>
+				<td><input type="checkbox" onclick="handleRowClick(this);" value="1" data-id="@item.Id" checked="checked" /></td>
+			</tr>
+		}
+	</tbody>
+</table>
+
+<form method="post">
+	<input asp-for="HomeId" type="hidden">
+	<input asp-for="JoinedIds" type="hidden">
+	<div class="form-group">
+		<input type="submit" value="Checkout" class="btn btn-primary" />
+		<input type="button" value="Cancel" class="btn btn-secondary"
+				 onclick="location.href='@Url.GetGroceryUrl(ViewContext)';" />
+	</div>
+</form>
+<script type="text/javascript">
+	const elemIds = document.getElementById("JoinedIds");
+
+	function handleRowClick(elem) {
+		if (elem.checked) {
+			// add the ID
+			console.log("ID (checked): " + elem.dataset.id);
+		} else {
+			// pull the ID
+			console.log("ID (unchecked): " + elem.dataset.id);
+		}
+	} // END handleRowClick
+</script>
