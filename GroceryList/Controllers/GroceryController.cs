@@ -121,22 +121,46 @@ namespace GroceryList.Controllers
         } // END Edit
 
         [HttpGet("delete/{itemId}")]
-        public async Task<IActionResult> Delete([FromRoute] string homeId, string itemId)
+        public async Task<IActionResult> Delete([FromRoute] string homeId, [FromRoute] string itemId)
         {
             if (string.IsNullOrWhiteSpace(itemId))
             {
-                TempData["ErrorMessage"] = $"No item specified";
+                TempData["ErrorMessage"] = "No item specified";
                 return this.RedirectToGrocery(homeId);
             }
-            //TempData["ErrorMessage"] = $"Unable to delete item ({itemId}) from list";
 
             try
             {
-                var model = await groceryRepo.DeleteAsync(new Models.GroceryItem
-                {
-                    Id = itemId,
-                    HomeId = homeId,
-                });
+                var model = await groceryRepo.GetItemAsync(homeId, itemId);
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Delete.Get Error: {0}|{1}", homeId, itemId);
+                TempData["ErrorMessage"] = $"Unable to remove the item: {itemId}";
+            }
+            return this.RedirectToGrocery(homeId);
+        } // END Delete
+        // Post is confirmation
+        [HttpPost("delete/{itemId}")]
+        public async Task<IActionResult> Delete([FromRoute] string homeId,
+            [FromRoute] string itemId, [FromForm] Models.GroceryItem model)
+        {
+            if (string.IsNullOrWhiteSpace(itemId))
+            {
+                TempData["ErrorMessage"] = "No item specified";
+                return this.RedirectToGrocery(homeId);
+            }
+            if (!itemId.Equals(model.Id, StringComparison.Ordinal))
+            {
+                TempData["ErrorMessage"] = "Mismatch with item specified";
+                return this.RedirectToGrocery(homeId);
+            }
+
+            try
+            {
+                //TempData["ErrorMessage"] = $"Unable to delete item ({itemId}) from list";
+                model = await groceryRepo.DeleteAsync(model);
                 TempData["InfoMessage"] = $"Item ({model.Name}) removed from list";
                 TempData["ErrorMessage"] = null;
             }
@@ -147,7 +171,8 @@ namespace GroceryList.Controllers
             }
 
             return this.RedirectToGrocery(homeId);
-        }
+        } // END Delete
+
         [Route("tocart/{itemId}")]
         public async Task<IActionResult> ToCart([FromRoute] string homeId, string itemId)
         {
@@ -190,6 +215,13 @@ namespace GroceryList.Controllers
             {
                 // checkout all items currently in cart
                 var list = await groceryRepo.GetCheckoutAsync(homeId);
+
+                if (list == null || !list.Any())
+                {
+                    ViewData["ErrorMessage"] = "There are no items in your cart";
+                    return this.RedirectToGrocery(homeId);
+                }
+
                 return View(new CheckoutForm
                 {
                     HomeId = homeId,
