@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 
 namespace GroceryList.Controllers
 {
+    // NO DATA CHANGE WITH HttpGet ONLY WITH HttpPost/Put/Patch/Delete
+
     [Route("{homeId}/[controller]")]
     public class GroceryController : Controller
     {
