@@ -2,7 +2,7 @@ using GroceryList.Data;
 using GroceryList.Models.Config;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-//using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -29,6 +29,8 @@ namespace GroceryList
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddHttpContextAccessor();
+            // var safeIpAddress = System.Net.IPAddress.Parse(Configuration.GetValue<string>("ForwardOptions:SafeIpAddress"));
+            // services.Configure<ForwardedHeadersOptions>(o => o.KnownProxies.Add(safeIpAddress));
 
             services.Configure<DataServiceConfig>(Configuration.GetSection("DataService"));
             services.AddScoped<Services.IDataService, Services.DataService>();
@@ -57,6 +59,8 @@ namespace GroceryList
             {
                 app.UseDeveloperExceptionPage();
                 app.UseMigrationsEndPoint();
+                // Production will use Proxy
+                app.UseHttpsRedirection();
             }
             else
             {
@@ -65,10 +69,14 @@ namespace GroceryList
                 app.UseHsts();
             }
 
-            app.UseHttpsRedirection();
             app.UseStaticFiles();
 
             app.UseRouting();
+
+            app.UseForwardedHeaders(new ForwardedHeadersOptions
+            {
+                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+            });
 
             //app.UseAuthentication();
             //app.UseAuthorization();
