@@ -32,7 +32,7 @@ namespace GroceryList.Services
             dataPath = options.Value.DataPath;
         }
 
-        private static string GetNewId()
+        internal static string GetNewId()
         {
             return "_" + DateTime.Now.ToString("yyyyMMdd_HHmmss_fff");
         }
