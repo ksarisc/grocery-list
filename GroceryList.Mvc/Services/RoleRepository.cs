@@ -21,9 +21,9 @@ namespace GroceryList.Mvc.Services
         private const string update = "UPDATE " + table + " SET home_id = @HomeId, first_name = @FirstName, last_name = @LastName, confirmed = @Confirmed WHERE " + whereId + ";";
         private const string delete = "DELETE FROM " + table + " WHERE " + whereId + ";";
 
-        private readonly DataService data;
+        private readonly IDataService data;
 
-        public RoleRepository(DataService dataService)
+        public RoleRepository(IDataService dataService)
         {
             data = dataService;
         }

@@ -30,8 +30,7 @@ namespace GroceryList.Mvc
             //Utilities.SetUser(Configuration);
             services.AddControllersWithViews();
 
-            // setup Datbase context?
-
+            // setup Database context?
             services.Configure<DataConfig>(Configuration.GetSection(DataConfig.Data));
             services.AddSingleton<IDataService, DataService>();
 
@@ -54,7 +53,7 @@ namespace GroceryList.Mvc
                 })
                 // .AddMicrosoftAccount(microsoftOptions => { ... })
                 // .AddTwitter(twitterOptions => { ... })
-                // .AddFacebook(facebookOptions => { ... });
+                // .AddFacebook(facebookOptions => { ... })
                 ;
         }
 

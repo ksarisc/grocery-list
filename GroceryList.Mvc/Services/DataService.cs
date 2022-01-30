@@ -25,6 +25,8 @@ namespace GroceryList.Mvc.Services
         public Task<bool> TableExists(DbConnection connection, string table, string createIfMissing = null);
 
         public Task<int> ExecuteAsync(string query, object parameters, CancellationToken cancel);
+        public Task<T> QuerySingleAsync<T>(SqlBuilder.Template template, CancellationToken cancel);
+        public Task<IEnumerable<T>> QueryAsync<T>(SqlBuilder.Template template, CancellationToken cancel);
     }
 
     public class DataService : IDataService
