@@ -1,0 +1,14 @@
+﻿@if (TempData["InfoMessage"] != null)
+{
+	<div class="text-center alert-info">
+		<h5>@TempData["InfoMessage"]</h5>
+		@{ TempData["InfoMessage"] = null; }
+	</div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+	<div class="text-center alert-warning">
+		<h5>@TempData["ErrorMessage"]</h5>
+		@{ TempData["ErrorMessage"] = null; }
+	</div>
+}
