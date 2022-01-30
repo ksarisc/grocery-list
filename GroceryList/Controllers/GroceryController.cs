@@ -13,8 +13,8 @@ namespace GroceryList.Controllers
 {
     // NO DATA CHANGE WITH HttpGet ONLY WITH HttpPost/Put/Patch/Delete
 
+    //[Authorize(Roles = HomeRouteFilter.HasHome)]
     [Route(HomeRouteFilter.Route)]
-    [Authorize(Roles = HomeRouteFilter.HasHome)]
     public class GroceryController : Controller
     {
         private readonly Data.IGroceryRepository groceryRepo;

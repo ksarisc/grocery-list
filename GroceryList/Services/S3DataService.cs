@@ -143,7 +143,7 @@ namespace GroceryList.Services
             if (meta.ContentLength > 0)
             {
                 var bakPath = GetPath(homeId, "bak");
-                var bakName = $"{storeName}{DataService.GetNewId()}.json";
+                var bakName = $"{storeName}{Utils.GetNewId()}.json";
                 await MoveAsync(homeId, fname, bakPath, bakName);
             }
             if (data != null)
@@ -166,7 +166,7 @@ namespace GroceryList.Services
             }
             try
             {
-                request.StoreName += DataService.GetNewId();
+                request.StoreName += Utils.GetNewId();
                 var path = GetPath(request);
                 if (!(await AmazonS3Util.DoesS3BucketExistV2Async(client, path)))
                 {

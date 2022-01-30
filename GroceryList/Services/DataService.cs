@@ -30,11 +30,9 @@ namespace GroceryList.Services
             // need to be able to define the base (for different types of data)
             // also need to have a better locking strategy for updates (none right now)
             dataPath = options.Value.DataPath;
-        }
-
-        internal static string GetNewId()
-        {
-            return "_" + DateTime.Now.ToString("yyyyMMdd_HHmmss_fff");
+            if (Utils.IsLinux){
+                dataPath = options.Value.DataPathLinux;
+            }
         }
 
         private string GetFilePath(in string homeId, in string fileName)
@@ -105,7 +103,7 @@ namespace GroceryList.Services
                 var bak = GetTypePath(new Models.DataRequest
                 {
                     HomeId = homeId,
-                    StoreName = storeName + GetNewId(),
+                    StoreName = storeName + Utils.GetNewId(),
                     ActionName = "bak"
                 });
                 using var readFile = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.Read, 8192, true);
@@ -128,7 +126,7 @@ namespace GroceryList.Services
 
         public async Task SetAsync(Models.DataRequest request, object data)
         {
-            request.StoreName += GetNewId();
+            request.StoreName += Utils.GetNewId();
             var info = GetTypePath(request);
             if (!info.Directory.Exists)
             {
