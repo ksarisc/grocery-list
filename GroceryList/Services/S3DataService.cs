@@ -1,74 +1,62 @@
-﻿using GroceryList.Models.Config;
+﻿using Amazon.S3;
+using Amazon.S3.Model;
+using GroceryList.Models;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
-using System.IO;
+using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace GroceryList.Services
 {
-    /// <summary>
-    /// Principle: connect to a "file system" to retrieve files based on home indicated in route
-    /// </summary>
-    public interface IDataService : IDisposable
+    public class S3DataService : IDataService
     {
-        public Task<bool> HomeExistsAsync(string homeId);
-        public Task<Models.Home> AddHomeAsync(Models.Home home);
+        private const string homeFile = "home.json";
 
-        public Task<T> GetAsync<T>(string homeId, string storeName);
-        public Task<T> GetAsync<T>(Models.DataRequest request);
-        public Task SetAsync(string homeId, string storeName, object data);
-        public Task SetAsync(Models.DataRequest request, object data);
-    }
+        private readonly ILogger<S3DataService> logger;
+        private readonly AmazonS3Client client;
 
-    public class DataService : IDataService
-    {
-        private readonly string dataPath;
-
-        public DataService(IOptions<DataServiceConfig> options)
+        public S3DataService(ILogger<S3DataService> dataLogger, IOptions<Models.Config.DataServiceConfig> options)
         {
-            // need to be able to define the base (for different types of data)
-            // also need to have a better locking strategy for updates (none right now)
-            dataPath = options.Value.DataPath;
+            logger = dataLogger;
+            //dataPath = options.Value.DataPath
+            // setup AWS_PROFILE & AWS_REGION in Environment
+            client = new AmazonS3Client();
         }
 
-        private static string GetNewId()
+        public async Task<bool> HomeExistsAsync(string homeId)
         {
-            return "_" + DateTime.Now.ToString("yyyyMMdd_HHmmss_fff");
+            try
+            {
+                using var response = await client.GetObjectAsync(homeId, homeFile);
+                return response.ContentLength != 0;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "HomeExistsAsync ({homeId} Error)", homeId);
+            }
+            return false;
         }
-
-        private string GetFilePath(in string homeId, in string fileName)
-        {
-            return Path.Combine(dataPath, homeId, $"{fileName}.json");
-        }
-        private FileInfo GetTypePath(in Models.DataRequest request)
-        {
-            return new FileInfo(
-                Path.Combine(dataPath, request.HomeId, request.ActionName, $"{request.StoreName}.json")
-            );
-        }
-
-        public Task<bool> HomeExistsAsync(string homeId)
-        {
-            return Task.FromResult(Directory.Exists(Path.Combine(dataPath, homeId)));
-        }
-        public async Task<Models.Home> AddHomeAsync(Models.Home home) // should the home be defined prior to add?
+        public async Task<Home> AddHomeAsync(Home home) // should the home be defined prior to add?
         {
             if (string.IsNullOrWhiteSpace(home.Id)) throw new ArgumentNullException("ID required");
 
-            var path = Path.Combine(dataPath, home.Id);
             // this should NOT be returned to the user even though it should never actually happen
-            if (Directory.Exists(path)) throw new ArgumentOutOfRangeException("Home already exists");
+            if (await HomeExistsAsync(home.Id)) throw new ArgumentOutOfRangeException("Home already exists");
 
-            Directory.CreateDirectory(path);
-            Directory.CreateDirectory(Path.Combine(path, "bak"));
-            //Directory.CreateDirectory(Path.Combine(path, "trip"));
+            await client.PutBucketAsync(home.Id);
+            await client.PutBucketAsync(home.Id + "/bak");
 
-            var hfile = Path.Combine(path, "home.json");
-            using var file = new FileStream(hfile, FileMode.Create, FileAccess.Write, FileShare.Read, 8192, true);
-            await JsonSerializer.SerializeAsync(file, home); //, jsonOptions, cancel);
+            var request = new PutObjectRequest
+            {
+                BucketName = home.Id,
+                Key = homeFile,
+            };
+            await JsonSerializer.SerializeAsync(request.InputStream, home);
+            var response = await client.PutObjectAsync(request);
 
-            return home;
+            return response.HttpStatusCode == System.Net.HttpStatusCode.OK ? home : null;
         } // END AddHomeAsync
 
         public async Task<T> GetAsync<T>(string homeId, string storeName)
@@ -144,6 +132,7 @@ namespace GroceryList.Services
         {
             if (disposing)
             {
+                client.Dispose();
             }
         }
         public void Dispose()
@@ -151,7 +140,7 @@ namespace GroceryList.Services
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-        ~DataService()
+        ~S3DataService()
         {
             Dispose(false);
         }

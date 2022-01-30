@@ -1,4 +1,7 @@
 ﻿using GroceryList.Models.Forms;
+using GroceryList.Services;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
@@ -10,7 +13,8 @@ namespace GroceryList.Controllers
 {
     // NO DATA CHANGE WITH HttpGet ONLY WITH HttpPost/Put/Patch/Delete
 
-    [Route("{homeId}/[controller]")]
+    [Route(HomeRouteFilter.Route)]
+    [Authorize(Roles = HomeRouteFilter.HasHome)]
     public class GroceryController : Controller
     {
         private readonly Data.IGroceryRepository groceryRepo;

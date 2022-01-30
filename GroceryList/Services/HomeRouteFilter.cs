@@ -8,11 +8,13 @@ using System.Threading.Tasks;
 
 namespace GroceryList.Services
 {
-    public class HomeRouteFilter : IAsyncActionFilter
+    internal class HomeRouteFilter : IAsyncActionFilter
     {
         public const string Label = "HomeId";
         public const string Parameter = "homeSlug";
         public const string Route = "/{homeId}/[controller]"; // should this start with ~
+
+        public const string HasHome = "HasHome";
 
         public HomeRouteFilter() { }
 
