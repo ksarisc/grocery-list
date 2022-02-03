@@ -7,6 +7,7 @@ namespace GroceryList.Models
     {
         [Required]
         public string Id { get; set; }
+        public string Title{ get; set; }
         [Required]
         public string CreatedBy { get; set; }
         [Required]
