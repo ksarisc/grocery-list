@@ -1,0 +1,20 @@
+[Unit]
+Description=Grocery List daemon for ASP.NET on Linux (systemd version)
+
+[Service]
+WorkingDirectory={path_to_publish_results_service_install}
+ExecStart={path_to_publish_results_service_install}/GroceryList.dll
+
+# restart after 10 seconds upon every crash
+Restart=always
+RestartSec=10
+
+KillSignal=SIGINT
+SyslogIdentifier=groceriesd
+
+User=www-data
+Environment=ASPNETCORE_ENVIRONMENT=Production
+Environment=DOTNET_PRINT_TELEMENTARY_MESSAGE=false
+
+[Install]
+WantedBy=multi-user.target
