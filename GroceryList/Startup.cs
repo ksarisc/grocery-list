@@ -44,13 +44,13 @@ namespace GroceryList
             //services.AddDatabaseDeveloperPageExceptionFilter();
             //services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
             //    .AddEntityFrameworkStores<ApplicationDbContext>();
-            services.AddRazorPages();
+            // services.AddRazorPages();
+            // services.AddMvc();
+            
             //.AddMvc vs .AddControllersWithViews
             var mvc = services.AddControllersWithViews(o => o.Filters.AddService<Services.HomeRouteFilter>());
-            if (currentEnv.IsDevelopment())
-            {
-                mvc.AddRazorRuntimeCompilation();
-            }
+
+            if (currentEnv.IsDevelopment()) mvc.AddRazorRuntimeCompilation();
         } // END ConfigureServices
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -59,32 +59,40 @@ namespace GroceryList
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseMigrationsEndPoint();
+                //app.UseMigrationsEndPoint();
                 // Production will use Proxy
                 app.UseHttpsRedirection();
             }
             else
             {
-                app.UseExceptionHandler("/Error");
+                app.UseExceptionHandler("/Home/Error");
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
 
             app.UseStaticFiles();
 
-            app.UseRouting();
-
             app.UseForwardedHeaders(new ForwardedHeadersOptions
             {
                 ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
             });
+
+            app.UseRouting();
+            app.UseStatusCodePages();
 
             //app.UseAuthentication();
             //app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapDefaultControllerRoute();
+                //endpoints.MapRazorPages();
+                endpoints.MapControllers();
+                //endpoints.MapHttpAttributeRoutes();
+
+                //endpoints.MapDefaultControllerRoute();
+                endpoints.MapControllerRoute(
+                    name: "default",
+                    pattern: "{controller=Home}/{action=Index}/{id?}");
             });
         } // END Configure
     }
