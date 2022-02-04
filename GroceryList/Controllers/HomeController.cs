@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace GroceryList.Controllers
 {
     [Route("")]
-    [Route("/[controller]")]
+    [Route("~/[controller]")]
     public class HomeController : Controller
     {
         private readonly Services.IDataService data;
