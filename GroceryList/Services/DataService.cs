@@ -97,25 +97,28 @@ namespace GroceryList.Services
         public async Task SetAsync(string homeId, string storeName, object data)
         {
             var path = GetFilePath(homeId, storeName);
-            // ?? backup/archive ??
-            if (File.Exists(path))
+            var exists = File.Exists(path);
+
+            if (exists)
             {
+                // ?? backup/archive ??
                 var bak = GetTypePath(new Models.DataRequest
                 {
                     HomeId = homeId,
                     StoreName = storeName + Utils.GetNewId(),
                     ActionName = "bak"
                 });
-                using var readFile = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.Read, 8192, true);
-                using var bakFile = new FileStream(bak.FullName, FileMode.Create, FileAccess.Write, FileShare.Read, 8192, true);
-                await readFile.CopyToAsync(bakFile);
+                using var file = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None, 8192, true);
+                using var bakFile = new FileStream(bak.FullName, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true);
+                await file.CopyToAsync(bakFile);
                 // reset position?
-                readFile.SetLength(0);
+                file.SetLength(0);
                 //File.Move(path, bak);
+                await file.FlushAsync();
             }
             if (data != null)
             {
-                using var file = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Read, 8192, true);
+                using var file = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true);
                 await JsonSerializer.SerializeAsync(file, data); //, jsonOptions, cancel);
             }
             else

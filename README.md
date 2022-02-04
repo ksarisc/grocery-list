@@ -3,7 +3,7 @@ Simple app (especially should be hostable by user and/or serverless) to store an
 
 Default home is configurable for user hosting so that all users on instance have same home without having to create then join homes.
 
-## API
+## Website
 * List
     * Current
 * Item

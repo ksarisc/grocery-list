@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace GroceryList.Controllers
 {
-    [Route("/[controller]")]
+    [Route("")]
+    [Route("~/[controller]")]
     public class HomeController : Controller
     {
         private readonly Services.IDataService data;
@@ -81,5 +82,14 @@ namespace GroceryList.Controllers
             }
             return View();
         } // END Create
+
+        [Route("error")]
+        public IActionResult Error()
+        {
+            return View(new Models.ErrorViewModel
+            {
+                RequestId = System.Diagnostics.Activity.Current?.Id ?? HttpContext.TraceIdentifier,
+            });
+        }
     }
 }

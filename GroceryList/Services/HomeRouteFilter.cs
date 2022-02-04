@@ -12,7 +12,7 @@ namespace GroceryList.Services
     {
         public const string Label = "HomeId";
         public const string Parameter = "homeSlug";
-        public const string Route = "/{homeId}/[controller]"; // should this start with ~
+        public const string Route = "~/{homeId}/[controller]"; // should this start with ~
 
         public const string HasHome = "HasHome";
 
