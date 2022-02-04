@@ -7,6 +7,8 @@ namespace GroceryList
 {
     public static class UrlExtensions
     {
+        private const string index = "Index";
+
         public static void SetHomeId(this Controller self, string homeId)
         {
             self.TempData["HomeId"] = homeId;
@@ -30,12 +32,23 @@ namespace GroceryList
             return self.ViewData["HomeId"] as string;
         }
 
-        public static string GetGroceryUrl(this IUrlHelper url, ViewContext context,
+        public static string GetHomeUrl(this IUrlHelper self, ViewContext context)
+        {
+            var homeId = context.GetHomeId();
+            if (String.IsNullOrEmpty(homeId))
+            {
+                //asp-area=""
+                return self.Action(index, "Home");
+            }
+            return self.Action(index, "Grocery", new { homeId = homeId, });
+        } // END GetHomeUrl
+
+        public static string GetGroceryUrl(this IUrlHelper self, ViewContext context,
             string action = null, string itemId = null)
         {
             if (string.IsNullOrWhiteSpace(action))
             {
-                action = "Index";
+                action = index;
             }
             //object values;
             //if (string.IsNullOrWhiteSpace(itemId)){
@@ -49,15 +62,15 @@ namespace GroceryList
             {
                 values.Add("itemId", itemId);
             }
-            return url.Action(action, "Grocery", values);
+            return self.Action(action, "Grocery", values);
         } // END GetGroceryUrl
         public static string GetGroceryUrl(this Controller self, string action = null)
         {
             if (string.IsNullOrWhiteSpace(action))
             {
-                action = "Index";
+                action = index;
             }
-            return self.Url.Action(action, "Grocery", new { homeId = self.GetHomeId() });
+            return self.Url.Action(action, "Grocery", new { homeId = self.GetHomeId(), });
         }
 
         public static IActionResult RedirectToGrocery(this Controller self, string homeId = null)
@@ -70,7 +83,7 @@ namespace GroceryList
             {
                 homeId = self.GetHomeId();
             }
-            return self.RedirectToAction("Index", "Grocery", new { homeId = homeId });
+            return self.RedirectToAction(index, "Grocery", new { homeId = homeId, });
         }
     }
 }

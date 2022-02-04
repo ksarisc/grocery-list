@@ -32,6 +32,7 @@ namespace GroceryList
             // var safeIpAddress = System.Net.IPAddress.Parse(Configuration.GetValue<string>("ForwardOptions:SafeIpAddress"));
             // services.Configure<ForwardedHeadersOptions>(o => o.KnownProxies.Add(safeIpAddress));
 
+            services.Configure<GeneralConfig>(Configuration.GetSection("General"));
             services.Configure<DataServiceConfig>(Configuration.GetSection("DataService"));
             services.AddScoped<Services.IDataService, Services.DataService>();
             //services.AddScoped<IUserDataRepository, UserDataRepository>();
