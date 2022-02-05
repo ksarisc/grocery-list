@@ -61,7 +61,7 @@ namespace GroceryList.Controllers
             try
             {
                 // after validation, setup the new home
-                homeId = Guid.NewGuid().ToString();
+                homeId = Utils.GetNewUuid();
                 // if an error happens in save, should a new GUID be generated?
                 var home = new Models.Home
                 {

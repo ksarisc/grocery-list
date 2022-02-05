@@ -24,6 +24,7 @@ namespace GroceryList.Services
 
     public class DataService : IDataService
     {
+        private const string homeFile = "home.json";
         private const int bufferSize = 8192;
         private readonly string dataPath;
 
@@ -39,6 +40,7 @@ namespace GroceryList.Services
 
         private string GetFilePath(in string homeId, in string fileName)
         {
+            // ?? should we ToLower the parameters to make misses less likely ??
             return Path.Combine(dataPath, homeId, $"{fileName}.json");
         }
         private FileInfo GetTypePath(in Models.DataRequest request)
@@ -64,7 +66,7 @@ namespace GroceryList.Services
             Directory.CreateDirectory(Path.Combine(path, "bak"));
             //Directory.CreateDirectory(Path.Combine(path, "trip"));
 
-            var hfile = Path.Combine(path, "home.json");
+            var hfile = Path.Combine(path, homeFile);
             using var file = new FileStream(hfile, FileMode.Create, FileAccess.Write, FileShare.Read, bufferSize, true);
             await JsonSerializer.SerializeAsync(file, home); //, jsonOptions, cancel);
 
@@ -72,7 +74,7 @@ namespace GroceryList.Services
         } // END AddHomeAsync
         public async Task<Models.Home> GetHomeAsync(string homeId)
         {
-            var path = Path.Combine(dataPath, homeId, "home.json");
+            var path = Path.Combine(dataPath, homeId, homeFile);
             if (!File.Exists(path))
             {
                 return default(Models.Home);

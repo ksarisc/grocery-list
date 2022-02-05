@@ -65,7 +65,7 @@ namespace GroceryList.Data
             // initialize
             if (string.IsNullOrWhiteSpace(model.Id))
             {
-                model.Id = Guid.NewGuid().ToString();
+                model.Id = Utils.GetNewUuid();
             }
 
             var list = await GetListAsync(model.HomeId);

@@ -43,7 +43,7 @@ namespace GroceryList.Data
             // ID value MUST be set
             if (string.IsNullOrWhiteSpace(role.Id))
             {
-                role.Id = Guid.NewGuid().ToString();
+                role.Id = Utils.GetNewUuid();
             }
 
             // is get needed at all, since we're just setting is at the end
