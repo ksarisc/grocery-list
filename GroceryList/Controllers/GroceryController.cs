@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 namespace GroceryList.Controllers
 {
     // NO DATA CHANGE WITH HttpGet ONLY WITH HttpPost/Put/Patch/Delete
+    // Groceries should probably have an API controller to make testing easier
 
     //[Authorize(Roles = HomeRouteFilter.HasHome)]
     [Route(HomeRouteFilter.Route)]
@@ -58,7 +59,7 @@ namespace GroceryList.Controllers
         public async Task<IActionResult> Index()
         {
             await SetHomeAsync();
-            
+
             // display the current list
             var list = await groceryRepo.GetListAsync(homeId);
             return View(list);
@@ -75,33 +76,34 @@ namespace GroceryList.Controllers
         public async Task<IActionResult> Add([FromForm] GroceryItemForm formModel)
         {
             //this.SetHomeId(homeId);
-
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                try
+                TempData["ErrorMessage"] = $"Unable to add item: check details below";
+                return View(formModel);
+            }
+            try
+            {
+                var model = new Models.GroceryItem
                 {
-                    var model = new Models.GroceryItem
-                    {
-                        HomeId = homeId,
-                        Name = formModel.Name,
-                        Brand = formModel.Brand,
-                        Notes = formModel.Notes,
-                        //Price = formModel.Price,
-                        CreatedTime = DateTimeOffset.UtcNow,
-                        CreatedUser = GetUser(),
-                        //InCartTime,InCartUser,
-                        //PurchasedTime,PurchasedUser,
-                    };
-                    model = await groceryRepo.AddAsync(model);
-                    TempData["InfoMessage"] = $"{model.Name} added to list";
-                    TempData["ErrorMessage"] = null;
-                    return this.RedirectToGrocery();
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, "Add Error ({0}): {0}", homeId, formModel);
-                    ViewData["ErrorMessage"] = "Unable to add the item";
-                }
+                    HomeId = homeId,
+                    Name = formModel.Name,
+                    Brand = formModel.Brand,
+                    Notes = formModel.Notes,
+                    //Price = formModel.Price,
+                    CreatedTime = DateTimeOffset.UtcNow,
+                    CreatedUser = GetUser(),
+                    //InCartTime,InCartUser,
+                    //PurchasedTime,PurchasedUser,
+                };
+                model = await groceryRepo.AddAsync(model);
+                TempData["InfoMessage"] = $"{model.Name} added to list";
+                TempData["ErrorMessage"] = null;
+                return this.RedirectToGrocery();
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Add Error ({0}): {0}", homeId, formModel);
+                ViewData["ErrorMessage"] = "Unable to add the item";
             }
             return View(formModel);
         } // END Add
@@ -131,7 +133,7 @@ namespace GroceryList.Controllers
             }
             if (!ModelState.IsValid)
             {
-                TempData["ErrorMessage"] = $"Unable to edit item ({itemId})";
+                TempData["ErrorMessage"] = $"Unable to edit item ({itemId}): check details below";
                 return View(model);
             }
             try
