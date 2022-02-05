@@ -19,8 +19,8 @@ else
 			<tr>
 				<th>Delete</th>
 				<th>Name</th>
-				<th>Brand</th>
-				<th>Price</th>
+				<th class="d-none d-lg-table-cell">Brand</th>
+				<th class="d-none d-lg-table-cell">Price</th>
 				<th>Created</th>
 				<th>In Cart</th>
 				<th>Edit</th>
@@ -34,8 +34,8 @@ else
 				<tr>
 					<td><a href="@Url.GetGroceryUrl(ViewContext, "Delete", itemId: item.Id)">delete</a></td>
 					<td>@item.Name</td>
-					<td>@item.Brand</td>
-					<td>@item.Price</td>
+					<td class="d-none d-lg-table-cell">@item.Brand</td>
+					<td class="d-none d-lg-table-cell">@item.Price</td>
 					<td>@item.CreatedTime.Format(includeDate: true)</td>
 					<td>@(item.InCartTime != null ? "YES" : "")</td>
 					@* EDIT *@
