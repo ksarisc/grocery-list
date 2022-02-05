@@ -18,14 +18,14 @@ namespace GroceryList.Data
         private const string lookupFile = "lookup_user_data";
 
         private readonly IDataService fileService;
-        private readonly string folder, userStore;
+        private readonly string folder; //, userStore;
 
         public UserRepository(IDataService dataService, IConfiguration configuration)
         {
             fileService = dataService;
             folder = configuration.GetValue<string>("User::BasePath");
             //userStore = configuration.GetValue<string>("User::FileName");
-            userStore = "app_user";
+            //userStore = "app_user";
         }
 
         private async Task UpdateLookups(AppUserLookup lookup)

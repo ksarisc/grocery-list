@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System;
 using System.Threading.Tasks;
@@ -9,27 +10,21 @@ namespace GroceryList
     {
         private const string index = "Index";
 
-        public static void SetHomeId(this Controller self, string homeId)
+        public static string GetHomeId(this HttpContext self)
         {
-            self.TempData["HomeId"] = homeId;
-            self.ViewData["HomeId"] = homeId;
-        }
+            var homeId = self.Request.Cookies[cookieId];
+            // when just set, will be in items
+            if (string.IsNullOrEmpty(homeId)) homeId = self.Items[cookieId] as string;
 
+            return !string.IsNullOrWhiteSpace(homeId) ? homeId : null;
+        }
         public static string GetHomeId(this Controller self)
         {
-            if (self.TempData["HomeId"] != null)
-            {
-                return self.TempData["HomeId"] as string;
-            }
-            return self.ViewData["HomeId"] as string;
+            return self.HttpContext.GetHomeId();
         }
         public static string GetHomeId(this ViewContext self)
         {
-            if (self.TempData["HomeId"] != null)
-            {
-                return self.TempData["HomeId"] as string;
-            }
-            return self.ViewData["HomeId"] as string;
+            return self.HttpContext.GetHomeId();
         }
 
         public static string GetHomeUrl(this IUrlHelper self, ViewContext context)
@@ -73,17 +68,54 @@ namespace GroceryList
             return self.Url.Action(action, "Grocery", new { homeId = self.GetHomeId(), });
         }
 
-        public static IActionResult RedirectToGrocery(this Controller self, string homeId = null)
+        public static IActionResult RedirectToGrocery(this Controller self) //, string homeId = null)
+        {
+            // ?? If home ID is NULL, send to normal index ??
+
+            // if (!string.IsNullOrWhiteSpace(homeId)){
+            //     self.SetHomeId(homeId);
+            // }else{
+            //     homeId = self.GetHomeId();
+            // }
+            //  return self.RedirectToAction(index, "Grocery", new { homeId = homeId, });
+            return self.RedirectToAction(index, "Grocery", new { homeId = self.GetHomeId(), });
+        }
+        public static IActionResult RedirectToGrocery(this Controller self, string homeId, string homeTitle)
+        {
+            self.HttpContext.SetHome(homeId, homeTitle);
+            return self.RedirectToAction(index, "Grocery", new { homeId = self.GetHomeId(), });
+        }
+
+        private const string cookieId = "HomeId";
+        private const string cookieTitle = "HomeTitle";
+        public static string GetHomeTitle(this HttpContext self)
+        {
+            var homeTitle = self.Request.Cookies[cookieTitle];
+            if (!string.IsNullOrEmpty(homeTitle)) return homeTitle;
+
+            return "Grocery List"; //Groceries";
+        }
+        public static HttpContext SetHome(this HttpContext self, string homeId, string homeTitle)
         {
             if (!string.IsNullOrWhiteSpace(homeId))
             {
-                self.SetHomeId(homeId);
+                // if (homeId.Equals(self.Request.Cookies[cookieId], StringComparison.Ordinal) ||
+                //     homeTitle.Equals(self.Request.Cookies[cookieTitle], StringComparison.Ordinal)){
+                //     return self;
+                // }
+                self.Items[cookieId] = homeId;
+                self.Items[cookieTitle] = homeTitle;
+
+                var expires = new CookieOptions { Expires = DateTimeOffset.Now.AddDays(7), };
+                self.Response.Cookies.Append(cookieId, homeId, expires);
+                self.Response.Cookies.Append(cookieTitle, homeTitle, expires);
             }
             else
             {
-                homeId = self.GetHomeId();
+                self.Response.Cookies.Delete(cookieId);
+                self.Response.Cookies.Delete(cookieTitle);
             }
-            return self.RedirectToAction(index, "Grocery", new { homeId = homeId, });
+            return self;
         }
     }
 }

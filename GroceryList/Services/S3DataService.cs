@@ -68,6 +68,14 @@ namespace GroceryList.Services
 
             return response.HttpStatusCode == System.Net.HttpStatusCode.OK ? home : null;
         } // END AddHomeAsync
+        public async Task<Models.Home> GetHomeAsync(string homeId)
+        {
+            if (logger.IsEnabled(LogLevel.Debug))
+            {
+                logger.LogDebug("GetHomeAsync Start: (Home:{homeId})", homeId);
+            }
+            return await ParseAsync<Models.Home>(homeId, "home");
+        }
 
         private async Task<T> ParseAsync<T>(string filePath, string fileName)
         {

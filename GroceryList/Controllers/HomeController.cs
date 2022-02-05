@@ -74,7 +74,7 @@ namespace GroceryList.Controllers
                 };
                 home = await data.AddHomeAsync(home);
 
-                return this.RedirectToGrocery(homeId);
+                return this.RedirectToGrocery(home.Id, home.Title);
             }
             catch (Exception ex)
             {

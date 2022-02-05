@@ -17,10 +17,22 @@ namespace GroceryList.Controllers
     [Route(HomeRouteFilter.Route)]
     public class GroceryController : Controller
     {
+        private readonly Services.IDataService dataSvc;
         private readonly Data.IGroceryRepository groceryRepo;
         private readonly ILogger<GroceryController> logger;
-        public GroceryController(Data.IGroceryRepository groceryRepository, ILogger<GroceryController> groceryLogger)
+
+        private string homeId;
+        [FromRoute]
+        public string HomeId
         {
+            get { return homeId; }
+            set { homeId = value; }
+        }
+
+        public GroceryController(Services.IDataService dataService,
+            Data.IGroceryRepository groceryRepository, ILogger<GroceryController> groceryLogger)
+        {
+            dataSvc = dataService;
             groceryRepo = groceryRepository;
             logger = groceryLogger;
         }
@@ -30,11 +42,23 @@ namespace GroceryList.Controllers
             return HttpContext.Connection.RemoteIpAddress.ToString();
         }
 
+        private async Task SetHomeAsync()
+        {
+            // ?? throw if homeId is null, empty, or whitespace ??
+            var localId = HttpContext.GetHomeId();
+            if (homeId.Equals(localId, StringComparison.Ordinal)) return;
+            // should each page check that the cookie matches the route? sounds like auth?
+            var home = await dataSvc.GetHomeAsync(homeId);
+            if (home != null) HttpContext.SetHome(home.Id, home.Title);
+            else HttpContext.SetHome(homeId, string.Empty);
+        }
+
         [Route("")]
         [Route("index")]
-        public async Task<IActionResult> Index(string homeId)
+        public async Task<IActionResult> Index()
         {
-            this.SetHomeId(homeId);
+            await SetHomeAsync();
+            
             // display the current list
             var list = await groceryRepo.GetListAsync(homeId);
             return View(list);
@@ -42,15 +66,15 @@ namespace GroceryList.Controllers
 
         // add/edit
         [HttpGet("add")]
-        public IActionResult Add(string homeId)
+        public IActionResult Add()
         {
-            this.SetHomeId(homeId);
+            //this.SetHomeId(homeId);
             return View();
         }
         [HttpPost("add")]
-        public async Task<IActionResult> Add([FromRoute] string homeId, [FromForm] GroceryItemForm formModel)
+        public async Task<IActionResult> Add([FromForm] GroceryItemForm formModel)
         {
-            this.SetHomeId(homeId);
+            //this.SetHomeId(homeId);
 
             if (ModelState.IsValid)
             {
@@ -83,28 +107,27 @@ namespace GroceryList.Controllers
         } // END Add
 
         [HttpGet("edit/{itemId}")]
-        public async Task<IActionResult> Edit([FromRoute] string homeId, [FromRoute] string itemId)
+        public async Task<IActionResult> Edit([FromRoute] string itemId)
         {
-            this.SetHomeId(homeId);
+            //this.SetHomeId(homeId);
             if (string.IsNullOrWhiteSpace(itemId))
             {
                 TempData["ErrorMessage"] = $"No item specified";
-                return this.RedirectToGrocery(homeId);
+                return this.RedirectToGrocery();
             }
             //TempData["ErrorMessage"] = null; //$"Unable to edit item ({itemId})";
-            //return this.RedirectToGrocery(homeId);
+            //return this.RedirectToGrocery();
             var model = await groceryRepo.GetItemAsync(homeId, itemId);
             return View(model);
         }
         [HttpPost("edit/{itemId}")]
-        public async Task<IActionResult> Edit([FromRoute] string homeId, [FromRoute] string itemId,
-            [FromForm] Models.GroceryItem model)
+        public async Task<IActionResult> Edit([FromRoute] string itemId, [FromForm] Models.GroceryItem model)
         {
-            this.SetHomeId(homeId);
+            //this.SetHomeId(homeId);
             if (string.IsNullOrWhiteSpace(itemId) || model == null || string.IsNullOrWhiteSpace(model.Id))
             {
                 TempData["ErrorMessage"] = $"No item specified";
-                return this.RedirectToGrocery(homeId);
+                return this.RedirectToGrocery();
             }
             if (!ModelState.IsValid)
             {
@@ -116,7 +139,7 @@ namespace GroceryList.Controllers
                 model = await groceryRepo.AddAsync(model);
                 TempData["InfoMessage"] = $"{model.Name} edited";
                 TempData["ErrorMessage"] = null;
-                return this.RedirectToGrocery(homeId);
+                return this.RedirectToGrocery();
             }
             catch (Exception ex)
             {
@@ -127,12 +150,12 @@ namespace GroceryList.Controllers
         } // END Edit
 
         [HttpGet("delete/{itemId}")]
-        public async Task<IActionResult> Delete([FromRoute] string homeId, [FromRoute] string itemId)
+        public async Task<IActionResult> Delete([FromRoute] string itemId)
         {
             if (string.IsNullOrWhiteSpace(itemId))
             {
                 TempData["ErrorMessage"] = "No item specified";
-                return this.RedirectToGrocery(homeId);
+                return this.RedirectToGrocery();
             }
 
             try
@@ -145,22 +168,21 @@ namespace GroceryList.Controllers
                 logger.LogError(ex, "Delete.Get Error: {0}|{1}", homeId, itemId);
                 TempData["ErrorMessage"] = $"Unable to remove the item: {itemId}";
             }
-            return this.RedirectToGrocery(homeId);
+            return this.RedirectToGrocery();
         } // END Delete
         // Post is confirmation
         [HttpPost("delete/{itemId}")]
-        public async Task<IActionResult> Delete([FromRoute] string homeId,
-            [FromRoute] string itemId, [FromForm] Models.GroceryItem model)
+        public async Task<IActionResult> Delete([FromRoute] string itemId, [FromForm] Models.GroceryItem model)
         {
             if (string.IsNullOrWhiteSpace(itemId))
             {
                 TempData["ErrorMessage"] = "No item specified";
-                return this.RedirectToGrocery(homeId);
+                return this.RedirectToGrocery();
             }
             if (!itemId.Equals(model.Id, StringComparison.Ordinal))
             {
                 TempData["ErrorMessage"] = "Mismatch with item specified";
-                return this.RedirectToGrocery(homeId);
+                return this.RedirectToGrocery();
             }
 
             try
@@ -176,16 +198,16 @@ namespace GroceryList.Controllers
                 ViewData["ErrorMessage"] = "Unable to remove the item";
             }
 
-            return this.RedirectToGrocery(homeId);
+            return this.RedirectToGrocery();
         } // END Delete
 
         [Route("tocart/{itemId}")]
-        public async Task<IActionResult> ToCart([FromRoute] string homeId, string itemId)
+        public async Task<IActionResult> ToCart(string itemId)
         {
             if (string.IsNullOrWhiteSpace(itemId))
             {
                 TempData["ErrorMessage"] = $"No item specified";
-                return this.RedirectToGrocery(homeId);
+                return this.RedirectToGrocery();
             }
             //TempData["ErrorMessage"] = $"Unable to move item ({itemId}) to cart";
 
@@ -195,7 +217,7 @@ namespace GroceryList.Controllers
                 if (model == null)
                 {
                     TempData["ErrorMessage"] = $"Missing grocery item ({itemId})";
-                    return this.RedirectToGrocery(homeId);
+                    return this.RedirectToGrocery();
                 }
                 model.InCartTime = DateTimeOffset.UtcNow;
                 model.InCartUser = GetUser();
@@ -209,11 +231,11 @@ namespace GroceryList.Controllers
                 ViewData["ErrorMessage"] = "Unable to remove the item";
             }
 
-            return this.RedirectToGrocery(homeId);
+            return this.RedirectToGrocery();
         }
 
         [HttpGet("checkout")]
-        public async Task<IActionResult> Checkout([FromRoute] string homeId)
+        public async Task<IActionResult> Checkout()
         {
             //TempData["ErrorMessage"] = $"Unable to checkout cart";
 
@@ -225,7 +247,7 @@ namespace GroceryList.Controllers
                 if (list == null || !list.Any())
                 {
                     ViewData["ErrorMessage"] = "There are no items in your cart";
-                    return this.RedirectToGrocery(homeId);
+                    return this.RedirectToGrocery();
                 }
 
                 return View(new CheckoutForm
@@ -239,10 +261,10 @@ namespace GroceryList.Controllers
                 logger.LogError(ex, "Checkout.Get Error: {0}", homeId);
                 ViewData["ErrorMessage"] = "Checkout failed";
             }
-            return this.RedirectToGrocery(homeId);
+            return this.RedirectToGrocery();
         } // END Checkout
         [HttpPost("checkout")]
-        public async Task<IActionResult> Checkout([FromRoute] string homeId, CheckoutForm model)
+        public async Task<IActionResult> Checkout(CheckoutForm model)
         {
             List<Models.GroceryItem> list = null;
 
@@ -258,7 +280,7 @@ namespace GroceryList.Controllers
                 logger.LogError(ex, "Checkout Error: {0} (InCart: {1})", homeId, list);
                 ViewData["ErrorMessage"] = "Checkout failed";
             }
-            return this.RedirectToGrocery(homeId);
+            return this.RedirectToGrocery();
         } // END Checkout
     }
 }

@@ -14,7 +14,8 @@ namespace GroceryList.Services
     {
         public Task<bool> HomeExistsAsync(string homeId);
         public Task<Models.Home> AddHomeAsync(Models.Home home);
-
+        public Task<Models.Home> GetHomeAsync(string homeId);
+        
         public Task<T> GetAsync<T>(string homeId, string storeName);
         public Task<T> GetAsync<T>(Models.DataRequest request);
         public Task SetAsync(string homeId, string storeName, object data);
@@ -23,6 +24,7 @@ namespace GroceryList.Services
 
     public class DataService : IDataService
     {
+        private const int bufferSize = 8192;
         private readonly string dataPath;
 
         public DataService(IOptions<DataServiceConfig> options)
@@ -63,11 +65,21 @@ namespace GroceryList.Services
             //Directory.CreateDirectory(Path.Combine(path, "trip"));
 
             var hfile = Path.Combine(path, "home.json");
-            using var file = new FileStream(hfile, FileMode.Create, FileAccess.Write, FileShare.Read, 8192, true);
+            using var file = new FileStream(hfile, FileMode.Create, FileAccess.Write, FileShare.Read, bufferSize, true);
             await JsonSerializer.SerializeAsync(file, home); //, jsonOptions, cancel);
 
             return home;
         } // END AddHomeAsync
+        public async Task<Models.Home> GetHomeAsync(string homeId)
+        {
+            var path = Path.Combine(dataPath, homeId, "home.json");
+            if (!File.Exists(path))
+            {
+                return default(Models.Home);
+            }
+            using var file = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize, true);
+            return await JsonSerializer.DeserializeAsync<Models.Home>(file);
+        } // END GetHomeAsync
 
         public async Task<T> GetAsync<T>(string homeId, string storeName)
         {
@@ -76,7 +88,7 @@ namespace GroceryList.Services
             {
                 return default(T);
             }
-            using var file = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 8192, true);
+            using var file = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize, true);
             return await JsonSerializer.DeserializeAsync<T>(file); //, jsonOptions, cancel);
         }
         public async Task<T> GetAsync<T>(Models.DataRequest request)
@@ -90,7 +102,7 @@ namespace GroceryList.Services
             {
                 return default(T);
             }
-            using var file = new FileStream(info.FullName, FileMode.Open, FileAccess.Read, FileShare.Read, 8192, true);
+            using var file = new FileStream(info.FullName, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize, true);
             return await JsonSerializer.DeserializeAsync<T>(file); //, jsonOptions, cancel);
         } // END GetAsync
 
@@ -108,8 +120,8 @@ namespace GroceryList.Services
                     StoreName = storeName + Utils.GetNewId(),
                     ActionName = "bak"
                 });
-                using var file = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None, 8192, true);
-                using var bakFile = new FileStream(bak.FullName, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true);
+                using var file = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None, bufferSize, true);
+                using var bakFile = new FileStream(bak.FullName, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize, true);
                 await file.CopyToAsync(bakFile);
                 // reset position?
                 file.SetLength(0);
@@ -118,7 +130,7 @@ namespace GroceryList.Services
             }
             if (data != null)
             {
-                using var file = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true);
+                using var file = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize, true);
                 await JsonSerializer.SerializeAsync(file, data); //, jsonOptions, cancel);
             }
             else
@@ -136,7 +148,7 @@ namespace GroceryList.Services
                 info.Directory.Create();
             }
             // ?? backup/archive ??
-            using var file = new FileStream(info.FullName, FileMode.Create, FileAccess.Write, FileShare.Read, 8192, true);
+            using var file = new FileStream(info.FullName, FileMode.Create, FileAccess.Write, FileShare.Read, bufferSize, true);
             await JsonSerializer.SerializeAsync(file, data); //, jsonOptions, cancel);
         } // END SetAsync
 
