@@ -73,6 +73,16 @@ namespace GroceryList.Controllers
             return View(list);
         }
 
+        private Models.GroceryItem AddToCart(Models.GroceryItem model)
+        {
+            if (model.InCartTime == null)
+            {
+                model.InCartTime = DateTimeOffset.UtcNow;
+                model.InCartUser = GetUser();
+            }
+            return model;
+        }
+
         // add/edit
         [HttpGet("add")]
         public IActionResult Add()
@@ -91,20 +101,17 @@ namespace GroceryList.Controllers
             }
             try
             {
-                var model = new Models.GroceryItem
+                var model = formModel.ToModel();
+                model.HomeId = homeId;
+                model.CreatedTime = DateTimeOffset.UtcNow;
+                model.CreatedUser = GetUser();
+                if (formModel.AddToCart)
                 {
-                    HomeId = homeId,
-                    Name = formModel.Name,
-                    Brand = formModel.Brand,
-                    Notes = formModel.Notes,
-                    //Price = formModel.Price,
-                    CreatedTime = DateTimeOffset.UtcNow,
-                    CreatedUser = GetUser(),
-                    //InCartTime,InCartUser,
-                    //PurchasedTime,PurchasedUser,
-                };
+                    AddToCart(model);
+                }
+                //PurchasedTime,PurchasedUser,
                 model = await groceryRepo.AddAsync(model);
-                TempData["InfoMessage"] = $"{model.Name} added to list";
+                TempData["InfoMessage"] = $"{model.Name} added";
                 TempData["ErrorMessage"] = null;
                 return this.RedirectToGrocery();
             }
@@ -128,35 +135,45 @@ namespace GroceryList.Controllers
             //TempData["ErrorMessage"] = null; //$"Unable to edit item ({itemId})";
             //return this.RedirectToGrocery();
             var model = await groceryRepo.GetItemAsync(homeId, itemId);
-            return View(model);
+            return View(model.ToFormModel());
         }
         [HttpPost("edit/{itemId}")]
-        public async Task<IActionResult> Edit([FromRoute] string itemId, [FromForm] Models.GroceryItem model)
+        public async Task<IActionResult> Edit([FromRoute] string itemId, [FromForm] GroceryItemForm formModel)
         {
             //this.SetHomeId(homeId);
-            if (string.IsNullOrWhiteSpace(itemId) || model == null || string.IsNullOrWhiteSpace(model.Id))
+            if (string.IsNullOrWhiteSpace(itemId) || formModel == null || string.IsNullOrWhiteSpace(formModel.Id))
             {
                 TempData["ErrorMessage"] = $"No item specified";
+                return this.RedirectToGrocery();
+            }
+            if (!itemId.Equals(formModel.Id, StringComparison.Ordinal) || !homeId.Equals(formModel.HomeId, StringComparison.Ordinal))
+            {
+                TempData["ErrorMessage"] = $"Invalid item specified";
                 return this.RedirectToGrocery();
             }
             if (!ModelState.IsValid)
             {
                 TempData["ErrorMessage"] = $"Unable to edit item ({itemId}): check details below";
-                return View(model);
+                return View(formModel);
             }
             try
             {
-                model = await groceryRepo.AddAsync(model);
-                TempData["InfoMessage"] = $"{model.Name} edited";
+                var model = formModel.ToModel();
+                if (formModel.AddToCart)
+                {
+                    AddToCart(model);
+                }
+                await groceryRepo.AddAsync(model);
+                TempData["InfoMessage"] = $"{formModel.Name} edited";
                 TempData["ErrorMessage"] = null;
                 return this.RedirectToGrocery();
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Edit Error ({0}): {0}", homeId, model);
+                logger.LogError(ex, "Edit Error ({0}): {0}", homeId, formModel);
                 ViewData["ErrorMessage"] = "Unable to edit the item";
             }
-            return View(model);
+            return View(formModel);
         } // END Edit
 
         [HttpGet("delete/{itemId}")]
@@ -211,6 +228,7 @@ namespace GroceryList.Controllers
             return this.RedirectToGrocery();
         } // END Delete
 
+        // THIS NEEDS TO BE POST ONLY
         [Route("tocart/{itemId}")]
         public async Task<IActionResult> ToCart(string itemId)
         {
@@ -229,8 +247,7 @@ namespace GroceryList.Controllers
                     TempData["ErrorMessage"] = $"Missing grocery item ({itemId})";
                     return this.RedirectToGrocery();
                 }
-                model.InCartTime = DateTimeOffset.UtcNow;
-                model.InCartUser = GetUser();
+                AddToCart(model);
                 model = await groceryRepo.AddAsync(model);
                 TempData["InfoMessage"] = $"{model.Name} added to cart";
                 TempData["ErrorMessage"] = null;

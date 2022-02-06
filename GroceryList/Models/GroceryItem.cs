@@ -25,6 +25,9 @@ namespace GroceryList.Models
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public double? Price { get; set; }
+        // ?? assume NULL is 1 ??
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public int? Qty { get; set; }
 
         [Required]
         public DateTimeOffset CreatedTime { get; set; }
