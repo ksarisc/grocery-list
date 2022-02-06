@@ -49,7 +49,15 @@ namespace GroceryList.Controllers
             var localId = HttpContext.GetHomeId();
             if (homeId.Equals(localId, StringComparison.Ordinal)) return;
             // should each page check that the cookie matches the route? sounds like auth?
-            var home = await dataSvc.GetHomeAsync(homeId);
+            Models.Home home = null;
+            try
+            {
+                home = await dataSvc.GetHomeAsync(homeId);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Grocery.SetHome ({homeId}) Error", homeId);
+            }
             if (home != null) HttpContext.SetHome(home.Id, home.Title);
             else HttpContext.SetHome(homeId, string.Empty);
         }
