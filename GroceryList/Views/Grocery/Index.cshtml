@@ -1,11 +1,13 @@
 ﻿@model List<GroceryList.Models.GroceryItem>
 @{
-	ViewData["Title"] = "Current Grocery List";
-	//<a asp-route-homeId="@ViewData["HomeId"]" asp-controller="Grocery" asp-action="Add">
+	 ViewData["Title"] = "Current Grocery List";
+	 //<a asp-route-homeId="@ViewData["HomeId"]" asp-controller="Grocery" asp-action="Add">
+
+	 double total = 0.00;
 }
-<div class="text-center">
+<text-center>
 	<h1>@ViewData["Title"]</h1>
-</div>
+</text-center>
 <partial name="_MessagePartial" />
 
 @if (Model == null)
@@ -41,15 +43,23 @@ else
 					@* EDIT *@
 					<td><a href="@Url.GetGroceryUrl(ViewContext, "Edit", itemId: item.Id)">edit</a></td>
 					<td><a href="@Url.GetGroceryUrl(ViewContext, "ToCart", itemId: item.Id)">add</a></td>
-				</tr>
+				</tr>@{
+					 total += @item.Price ?? 0;
+				}
 			}
 		</tbody>
+		<tfoot>
+			<tr>
+				<td></td>
+				<td>@total</td>
+			</tr>
+		</tfoot>
 	</table>
 
-	<div class="form-group">
+	<form-group>
 		<input type="button" value="Add Item" class="btn btn-primary"
 				 onclick="location.href='@Url.GetGroceryUrl(ViewContext, "Add")';" />
 		<input type="button" value="Checkout" class="btn btn-primary"
 				 onclick="location.href='@Url.GetGroceryUrl(ViewContext, "Checkout")';" />
-	</div>
+	</form-group>
 }

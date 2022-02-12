@@ -19,6 +19,7 @@ namespace GroceryList.Services
 
         public S3DataService(ILogger<S3DataService> dataLogger, IOptions<Models.Config.DataServiceConfig> options)
         {
+            // Need to consider rate limits
             logger = dataLogger;
             //dataPath = options.Value.DataPath
             // setup AWS_PROFILE & AWS_REGION in Environment

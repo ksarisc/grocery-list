@@ -1,4 +1,5 @@
 ﻿using GroceryList.Models.Config;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.IO;
@@ -27,9 +28,11 @@ namespace GroceryList.Services
         private const string homeFile = "home.json";
         private const int bufferSize = 8192;
         private readonly string dataPath;
+        private readonly ILogger<DataService> logger;
 
-        public DataService(IOptions<DataServiceConfig> options)
+        public DataService(ILogger<DataService> dataLogger, IOptions<DataServiceConfig> options)
         {
+            logger = dataLogger;
             // need to be able to define the base (for different types of data)
             // also need to have a better locking strategy for updates (none right now)
             dataPath = options.Value.DataPath;
@@ -56,6 +59,11 @@ namespace GroceryList.Services
         }
         public async Task<Models.Home> AddHomeAsync(Models.Home home) // should the home be defined prior to add?
         {
+            var logEnabled = logger.IsEnabled(LogLevel.Debug);
+            if (logEnabled)
+            {
+                logger.LogDebug("AddHome init: {@home}", home);
+            }
             if (string.IsNullOrWhiteSpace(home.Id)) throw new ArgumentNullException("ID required");
 
             var path = Path.Combine(dataPath, home.Id);
@@ -70,6 +78,10 @@ namespace GroceryList.Services
             using var file = new FileStream(hfile, FileMode.Create, FileAccess.Write, FileShare.Read, bufferSize, true);
             await JsonSerializer.SerializeAsync(file, home); //, jsonOptions, cancel);
 
+            if (logEnabled)
+            {
+                logger.LogDebug("AddHome return: {@home}", home);
+            }
             return home;
         } // END AddHomeAsync
         public async Task<Models.Home> GetHomeAsync(string homeId)

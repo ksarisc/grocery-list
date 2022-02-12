@@ -2,15 +2,15 @@
 @{
 	ViewData["Title"] = "Confirm Delete";
 }
-<div class="text-center">
+<text-center>
 	<h1>@ViewData["Title"]</h1>
 
 	@if (TempData["ErrorMessage"] != null)
 	{
-	<h3>@TempData["ErrorMessage"]</h3>
+		<h3>@TempData["ErrorMessage"]</h3>
 	}
 	<h3 class="alert-warning">Are you sure you want to delete?</h3>
-</div>
+</text-center>
 
 <form method="post">
 	<input asp-for="Id" type="hidden">
