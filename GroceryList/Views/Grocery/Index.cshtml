@@ -33,6 +33,7 @@ else
 			@* ADD *@
 			@foreach (var item in Model)
 			{
+				total += @item.Price ?? 0;
 				<tr>
 					<td><a href="@Url.GetGroceryUrl(ViewContext, "Delete", itemId: item.Id)">delete</a></td>
 					<td>@item.Name</td>
@@ -43,9 +44,7 @@ else
 					@* EDIT *@
 					<td><a href="@Url.GetGroceryUrl(ViewContext, "Edit", itemId: item.Id)">edit</a></td>
 					<td><a href="@Url.GetGroceryUrl(ViewContext, "ToCart", itemId: item.Id)">add</a></td>
-				</tr>@{
-					 total += @item.Price ?? 0;
-				}
+				</tr>
 			}
 		</tbody>
 		<tfoot>
