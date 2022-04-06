@@ -30,7 +30,7 @@ else
 			</tr>
 		</thead>
 		<tbody>
-			@* ADD *@
+			@* ADD ?? with QTY ?? *@
 			@foreach (var item in Model)
 			{
 				total += @item.Price ?? 0;
@@ -50,7 +50,7 @@ else
 		<tfoot>
 			<tr>
 				<td></td>
-				<td>@total</td>
+				<td>@total.ToString("0.00")</td>
 			</tr>
 		</tfoot>
 	</table>
