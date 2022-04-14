@@ -9,8 +9,9 @@
 	@Html.ValidationSummary()
 </div>
 @{
-    var submitValue = ViewData["SubmitValue"] as string;
-    var addStyle = "Add".Equals(submitValue, StringComparison.OrdinalIgnoreCase) ? " style=\"display:none;\"" : "";
+	var submitValue = ViewData["SubmitValue"] as string;
+	var addStyle = "Add".Equals(submitValue, StringComparison.OrdinalIgnoreCase) ? " style=\"display:none;\"" : "";
+	var addRemoveCart = Model.InCartTime == null ? "Add to Cart" : "Remove from Cart" ;
 }
 <form method="post">
 	<input asp-for="Id" type="hidden">
@@ -56,7 +57,7 @@
 	</div>
 	<div class="form-group"@Html.Raw(addStyle)>
 		<label asp-for="InCartTime" class="control-label">In Cart Time</label>
-		<input asp-for="InCartTime" class="form-control" readonly>
+		<input asp-for="InCartTime" class="form-control" readonly ondblclick="addRemoveFromCart(this, 'AddToCart');">
 		<span asp-validation-for="InCartTime" class="text-danger"></span>
 	</div>
 	<!--
@@ -71,8 +72,8 @@
 		PurchasedUser
 	*@
 	<div class="form-group">
-		<label asp-for="AddToCart" class="control-label">Add to Cart</label>
-		<input asp-for="AddToCart" class="form-control" readonly>
+		<label asp-for="AddToCart" class="control-label">@addRemoveCart</label>
+		<input asp-for="AddToCart" class="form-control" readonly onclick="addRemoveFromCart('InCartTime');">
 	</div>
 	<div class="form-group">
 		<input type="submit" id="submit" name="submit" value="@submitValue" class="btn btn-primary" />
