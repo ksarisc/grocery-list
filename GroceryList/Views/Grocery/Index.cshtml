@@ -33,7 +33,7 @@ else
 			@* ADD ?? with QTY ?? *@
 			@foreach (var item in Model)
 			{
-				total += @item.Price ?? 0;
+				total += (item.InCartTime != null && item.Price != null ? item.Price.Value : 0.00);
 				<tr>
 					<td><a href="@Url.GetGroceryUrl(ViewContext, "Delete", itemId: item.Id)">delete</a></td>
 					<td>@item.Name</td>
@@ -50,7 +50,7 @@ else
 		<tfoot>
 			<tr>
 				<td></td>
-				<td>@total.ToString("0.00")</td>
+				<td>@string.Format("$ {0:0.00}", total)</td>
 			</tr>
 		</tfoot>
 	</table>

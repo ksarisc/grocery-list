@@ -1,6 +1,7 @@
 ﻿@model GroceryList.Models.Forms.CheckoutForm
 @{
 	ViewData["Title"] = "Checkout";
+	double total = 0.00;
 }
 <div class="text-center">
 	<h1>@ViewData["Title"]</h1>
@@ -22,6 +23,7 @@
 		@* ADD *@
 		@foreach (var item in Model.Items)
 		{
+			total += @item.Price ?? 0;
 			<tr data-id="@item.Id">@{ Model.ItemIds.Add(item.Id); }
 				<td>@item.Name</td>
 				<td>@item.Brand</td>
@@ -32,6 +34,12 @@
 			</tr>
 		}
 	</tbody>
+	<tfoot>
+		<tr>
+			<td></td>
+			<td>@string.Format("$ {0:0.00}", total)</td>
+		</tr>
+	</tfoot>
 </table>
 
 <form method="post">
