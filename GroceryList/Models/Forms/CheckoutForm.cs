@@ -9,6 +9,9 @@ namespace GroceryList.Models.Forms
         [Required]
         [StringLength(50, MinimumLength = 20)]
         public string HomeId { get; set; }
+        [StringLength(100, MinimumLength = 2)]
+        public string StoreName { get; set; }
+
         [Required]
         public string JoinedIds
         {
