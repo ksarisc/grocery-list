@@ -11,7 +11,7 @@
 @{
 	var submitValue = ViewData["SubmitValue"] as string;
 	var addStyle = "Add".Equals(submitValue, StringComparison.OrdinalIgnoreCase) ? " style=\"display:none;\"" : "";
-	var addRemoveCart = Model.InCartTime == null ? "Add to Cart" : "Remove from Cart" ;
+	var addRemoveCart = Model?.InCartTime == null ? "Add to Cart" : "Remove from Cart";
 }
 <form method="post">
 	<input asp-for="Id" type="hidden">
