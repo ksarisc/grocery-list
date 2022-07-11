@@ -9,35 +9,13 @@ using System.Threading.Tasks;
 
 namespace GroceryList.Data
 {
-    public interface IGroceryRepository
-    {
-        public Task<List<GroceryItem>> GetListAsync(string homeId);
-        public Task<GroceryItem> GetItemAsync(string homeId, string itemId);
-
-        /// <summary>
-        /// Adds/Updates current grocery list with specific item
-        /// </summary>
-        /// <param name="model">GroceryItem</param>
-        /// <returns>GroceryItem</returns>
-        public Task<GroceryItem> AddAsync(GroceryItem model);
-        /// <summary>
-        /// Remove specific item from current grocery list
-        /// </summary>
-        /// <param name="model">GroceryItem</param>
-        /// <returns>GroceryItem</returns>
-        public Task<GroceryItem> DeleteAsync(GroceryItem model);
-
-        public Task<List<GroceryItem>> GetCheckoutAsync(string homeId);
-        public Task<List<GroceryItem>> CheckoutAsync(string homeId, List<string> checkoutItemIds);
-    }
-
-    public class GroceryRepository : IGroceryRepository
+    public class FileGroceryRepository : IGroceryRepository
     {
         private const string currentFile = "current_list";
 
         private readonly IDataService fileService;
         //private readonly IHttpContextAccessor context;
-        public GroceryRepository(IDataService dataFileService) //, IHttpContextAccessor contextAccessor)
+        public FileGroceryRepository(IDataService dataFileService) //, IHttpContextAccessor contextAccessor)
         {
             fileService = dataFileService;
             //context = contextAccessor;
@@ -62,28 +40,32 @@ namespace GroceryList.Data
             if (string.IsNullOrWhiteSpace(model?.HomeId)) return null;
             // validate item
 
-            // initialize
-            if (string.IsNullOrWhiteSpace(model.Id))
-            {
-                model.Id = Utils.GetNewUuid();
-            }
-
             var list = await GetListAsync(model.HomeId);
             var found = false;
             if (list == null) list = new List<GroceryItem>();
 
             for (int i = 0; i != list.Count; i++)
             {
+                var item = list[i];
                 // ?? check by name & id ??
-                if (list[i].Name.Equals(model.Name, StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(item.Name, model.Name, StringComparison.OrdinalIgnoreCase))
                 {
                     found = true;
+                    model.Id = !string.IsNullOrWhiteSpace(item.Id) ?
+                        item.Id : Utils.GetNewUuid();
+                    model.CreatedTime = item.CreatedTime;
+                    model.CreatedUser = item.CreatedUser;
                     list[i] = model;
                     break;
                 }
             }
             if (!found)
             {
+                // initialize
+                if (string.IsNullOrWhiteSpace(model.Id))
+                {
+                    model.Id = Utils.GetNewUuid();
+                }
                 list.Add(model);
             }
 
@@ -115,14 +97,18 @@ namespace GroceryList.Data
             return model;
         } // END DeleteAsync
 
-        //public async Task<List<GroceryItem>> CheckoutAsync(string homeId)
-        //{
+        public async Task<List<GroceryItem>> GetCheckoutAsync(string homeId)
+        {
+            // get the list of items in cart
+            var list = await GetListAsync(homeId);
+            return list.Where(g => g.InCartTime != null).ToList();
+        }
+        //public async Task<List<GroceryItem>> CheckoutAsync(string homeId){
         //    // get the list of items in cart
         //    var list = await GetListAsync(homeId);
         //    var origList = list.ToArray();
         //    var inCart = list.Where(g => g.InCartTime != null).ToList();
-        //    inCart.ForEach(g =>
-        //    {
+        //    inCart.ForEach(g =>{
         //        list.RemoveAll(gl => gl.Id.Equals(g.Id, StringComparison.Ordinal));
         //    });
 
@@ -130,18 +116,14 @@ namespace GroceryList.Data
         //    await fileService.SetAsync(homeId, currentFile, list);
 
         //    // save the trip
-        //    try
-        //    {
-        //        var tripRqst = new DataRequest
-        //        {
+        //    try{
+        //        var tripRqst = new DataRequest{
         //            HomeId = homeId,
         //            StoreName = currentFile,
         //            ActionName = "trip",
         //        };
         //        await fileService.SetAsync(tripRqst, inCart);
-        //    }
-        //    catch (Exception)
-        //    {
+        //    }catch (Exception){
         //        // ?? rollback on error here ??
         //        await fileService.SetAsync(homeId, currentFile, origList);
         //        throw;
@@ -150,12 +132,6 @@ namespace GroceryList.Data
         //    // return the trip items
         //    return inCart;
         //} // END CheckoutAsync
-        public async Task<List<GroceryItem>> GetCheckoutAsync(string homeId)
-        {
-            // get the list of items in cart
-            var list = await GetListAsync(homeId);
-            return list.Where(g => g.InCartTime != null).ToList();
-        }
         public async Task<List<GroceryItem>> CheckoutAsync(string homeId, List<string> checkoutItemIds)
         {
             // get the list of items in cart
@@ -194,5 +170,21 @@ namespace GroceryList.Data
             // return the trip items
             return inCart;
         } // END CheckoutAsync
+
+        public async Task<List<GroceryTrip>> GetTripsAsync(string homeId)
+        {
+            var tripRqst = new DataRequest{
+                    HomeId = homeId,
+                    StoreName = currentFile,
+                    ActionName = "trip",
+                };
+            // list all previous trips (range?)
+            var files = await fileService.ListAsync(tripRqst);
+            var list = new List<GroceryTrip>();
+
+            // 
+
+            return list;
+        }
     }
 }

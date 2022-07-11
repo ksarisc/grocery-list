@@ -29,4 +29,32 @@ namespace GroceryList.Models
             Value = default(T);
         }
     }
+
+    public readonly struct ApiResult<T>
+    {
+        public ResultState State { get; }
+        public T Value { get; }
+        public string Message { get; }
+
+        public ApiResult(T value)
+        {
+            State = ResultState.Success;
+            Value = value;
+            Message = string.Empty;
+        }
+
+        public ApiResult(string message)
+        {
+            State = ResultState.Faulted;
+            Value = default(T);
+            Message = message ?? string.Empty;
+        }
+
+        public ApiResult(T value, string message)
+        {
+            State = !string.IsNullOrWhiteSpace(message) ? ResultState.Success : ResultState.Faulted;
+            Value = value;
+            Message = message ?? string.Empty;
+        }
+    }
 }

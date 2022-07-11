@@ -5,6 +5,7 @@ using GroceryList.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
+using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -12,7 +13,8 @@ namespace GroceryList.Services
 {
     public class S3DataService : IDataService
     {
-        private const string homeFile = "home.json";
+        private const string fileExt = ".json";
+        private const string homeFile = "home" + fileExt;
 
         private readonly ILogger<S3DataService> logger;
         private readonly IAmazonS3 client;
@@ -82,7 +84,7 @@ namespace GroceryList.Services
         {
             try
             {
-                using var response = await client.GetObjectAsync(filePath, $"{fileName}.json");
+                using var response = await client.GetObjectAsync(filePath, $"{fileName}{fileExt}");
                 return await JsonSerializer.DeserializeAsync<T>(response.ResponseStream);
             }
             catch (Exception ex)
@@ -146,13 +148,13 @@ namespace GroceryList.Services
         public async Task SetAsync(string homeId, string storeName, object data)
         {
             //var path = GetFilePath(homeId, storeName);
-            var fname = $"{storeName}.json";
+            var fname = $"{storeName}{fileExt}";
             // ?? backup/archive ??
             var meta = await client.GetObjectMetadataAsync(homeId, fname);
             if (meta.ContentLength > 0)
             {
                 var bakPath = GetPath(homeId, "bak");
-                var bakName = $"{storeName}{Utils.GetNewId()}.json";
+                var bakName = $"{storeName}{Utils.GetNewId()}{fileExt}";
                 await MoveAsync(homeId, fname, bakPath, bakName);
             }
             if (data != null)
@@ -185,7 +187,7 @@ namespace GroceryList.Services
                 var rqst = new PutObjectRequest
                 {
                     BucketName = path,
-                    Key = $"{request.StoreName}.json",
+                    Key = $"{request.StoreName}{fileExt}",
                 };
                 await JsonSerializer.SerializeAsync(rqst.InputStream, data);
                 var response = await client.PutObjectAsync(rqst);
@@ -196,13 +198,65 @@ namespace GroceryList.Services
             }
         } // END SetAsync
 
+        private static string Combine(string path1, string path2)
+        {
+            var endsWith = path1.EndsWith('/');
+            var startsWith = path2.StartsWith('/');
+            if (endsWith && startsWith)
+                return path1 + path2[..(path2.Length - 1)];
+            if (endsWith || startsWith)
+                return path1 + path2;
+            return path1 + "/" + path2;
+        }
+
+        public Task<List<Models.DataRequestInfo>> ListAsync(string homeId, string actionName, int maxResults = 0) =>
+                                            ListAsync(new Models.DataRequest { HomeId = homeId, ActionName = actionName, }, maxResults);
+        public async Task<List<Models.DataRequestInfo>> ListAsync(Models.DataRequest request, int maxResults = 0)
+        {
+            if (maxResults < 0) maxResults = 0;
+            var list = new List<Models.DataRequestInfo>();
+
+            var path = Combine(request.HomeId, request.ActionName);
+            if (!(await AmazonS3Util.DoesS3BucketExistV2Async(client, path)))
+            {
+                return list;
+            }
+
+            //client.ListBucketsAsync()
+            var listRqst = new ListObjectsRequest
+            {
+                BucketName = path,
+                //Delimiter = "",
+            };
+            //listRqst.Encoding
+            var files = await client.ListObjectsAsync(listRqst);
+            //files.HttpStatusCode
+            foreach (var f in files.S3Objects)
+            {
+                // ignore non-data files
+                if (!f.Key.EndsWith(fileExt, StringComparison.OrdinalIgnoreCase)) continue;
+
+                var rqst = new Models.DataRequestInfo
+                {
+                    HomeId = request.HomeId,
+                    ActionName = request.ActionName,
+                    StoreName = f.Key[..(f.Key.Length - fileExt.Length)],
+                    CreatedTime = f.LastModified,
+                };
+                list.Add(rqst);
+
+                if (maxResults != 0 && list.Count >= maxResults) break;
+            }
+
+            return list;
+        } // END ListAsync
+
         #region cleanup
         protected virtual void Dispose(bool disposing)
         {
-            if (disposing)
-            {
-                client.Dispose();
-            }
+            if (!disposing) return;
+
+            client.Dispose();
         }
         public void Dispose()
         {

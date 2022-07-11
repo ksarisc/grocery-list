@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -16,15 +17,19 @@ namespace GroceryList.Services
         public Task<bool> HomeExistsAsync(string homeId);
         public Task<Models.Home> AddHomeAsync(Models.Home home);
         public Task<Models.Home> GetHomeAsync(string homeId);
-        
+
         public Task<T> GetAsync<T>(string homeId, string storeName);
         public Task<T> GetAsync<T>(Models.DataRequest request);
         public Task SetAsync(string homeId, string storeName, object data);
         public Task SetAsync(Models.DataRequest request, object data);
+
+        public Task<List<Models.DataRequestInfo>> ListAsync(string homeId, string actionName, int maxResults = 0);
+        public Task<List<Models.DataRequestInfo>> ListAsync(Models.DataRequest request, int maxResults = 0);
     }
 
     public class DataService : IDataService
     {
+        private const string fileSearch = "*.json";
         private const string homeFile = "home.json";
         private const int bufferSize = 8192;
         private readonly string dataPath;
@@ -36,7 +41,8 @@ namespace GroceryList.Services
             // need to be able to define the base (for different types of data)
             // also need to have a better locking strategy for updates (none right now)
             dataPath = options.Value.DataPath;
-            if (Utils.IsLinux){
+            if (Utils.IsLinux)
+            {
                 dataPath = options.Value.DataPathLinux;
             }
         }
@@ -166,12 +172,38 @@ namespace GroceryList.Services
             await JsonSerializer.SerializeAsync(file, data); //, jsonOptions, cancel);
         } // END SetAsync
 
+        public Task<List<Models.DataRequestInfo>> ListAsync(string homeId, string actionName, int maxResults = 0) =>
+                                            ListAsync(new Models.DataRequest { HomeId = homeId, ActionName = actionName, }, maxResults);
+        public Task<List<Models.DataRequestInfo>> ListAsync(Models.DataRequest request, int maxResults = 0)
+        {
+            if (maxResults < 0) maxResults = 0;
+            var list = new List<Models.DataRequestInfo>();
+
+            var path = Path.Combine(dataPath, request.HomeId, request.ActionName);
+            if (!Directory.Exists(path)) return Task.FromResult(list);
+
+            var files = Directory.EnumerateFiles(path, fileSearch); //.GetFiles(fileSearch);
+            foreach (var f in files)
+            {
+                var rqst = new Models.DataRequestInfo
+                {
+                    HomeId = request.HomeId,
+                    ActionName = request.ActionName,
+                    StoreName = Path.GetFileNameWithoutExtension(f),
+                    CreatedTime = File.GetLastWriteTimeUtc(f),
+                };
+                list.Add(rqst);
+
+                if (maxResults != 0 && list.Count >= maxResults) break;
+            }
+
+            return Task.FromResult(list);
+        } // END ListAsync
+
         #region cleanup
         protected virtual void Dispose(bool disposing)
         {
-            if (disposing)
-            {
-            }
+            if (disposing) { }
         }
         public void Dispose()
         {

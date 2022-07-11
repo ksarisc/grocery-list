@@ -3,6 +3,7 @@ using GroceryList.Models.Config;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -36,7 +37,8 @@ namespace GroceryList
             services.Configure<DataServiceConfig>(Configuration.GetSection("DataService"));
             services.AddScoped<Services.IDataService, Services.DataService>();
             //services.AddScoped<IUserDataRepository, UserDataRepository>();
-            services.AddScoped<IGroceryRepository, GroceryRepository>();
+            // depending on configuration (file OR database)
+            services.AddScoped<IGroceryRepository, FileGroceryRepository>();
 
             services.AddScoped<Services.HomeRouteFilter>(); // should this be Transient?
 
@@ -46,7 +48,8 @@ namespace GroceryList
             //    .AddEntityFrameworkStores<ApplicationDbContext>();
             // services.AddRazorPages();
             // services.AddMvc();
-            
+            services.AddSignalR();
+
             //.AddMvc vs .AddControllersWithViews
             var mvc = services.AddControllersWithViews(o => o.Filters.AddService<Services.HomeRouteFilter>());
 
@@ -93,6 +96,8 @@ namespace GroceryList
                 endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+                endpoints.MapHub<Services.GroceryHub>("/grocery-hub");
             });
         } // END Configure
     }
