@@ -35,6 +35,8 @@ namespace GroceryList
 
             services.Configure<GeneralConfig>(Configuration.GetSection("General"));
             services.Configure<DataServiceConfig>(Configuration.GetSection("DataService"));
+            services.AddSingleton<Data.IUpdateCache, Data.UpdateCache>();
+
             services.AddScoped<Services.IDataService, Services.DataService>();
             //services.AddScoped<IUserDataRepository, UserDataRepository>();
             // depending on configuration (file OR database)

@@ -21,12 +21,12 @@ namespace GroceryList.Data
             //context = contextAccessor;
         }
 
-        public async Task<List<GroceryItem>> GetListAsync(string homeId)
+        public async Task<IEnumerable<GroceryItem>> GetListAsync(string homeId)
         {
             // get Home ID & correct current data file
             return await fileService.GetAsync<List<GroceryItem>>(homeId, currentFile);
         }
-        public async Task<GroceryItem> GetItemAsync(string homeId, string itemId)
+        public async Task<GroceryItem?> GetItemAsync(string homeId, string itemId)
         {
             var list = await fileService.GetAsync<List<GroceryItem>>(homeId, currentFile);
             if (list == null) return null;
@@ -35,15 +35,20 @@ namespace GroceryList.Data
             return list.FirstOrDefault(g => g.Id.Equals(itemId, StringComparison.Ordinal));
         }
 
-        public async Task<GroceryItem> AddAsync(GroceryItem model)
+        private async Task<List<GroceryItem>> GetAsListAsync(string homeId)
+        {
+            var result = await GetListAsync(homeId);
+            return result.AsList();
+        }
+
+        public async Task<GroceryItem?> AddAsync(GroceryItem model)
         {
             if (string.IsNullOrWhiteSpace(model?.HomeId)) return null;
             // validate item
 
-            var list = await GetListAsync(model.HomeId);
-            var found = false;
-            if (list == null) list = new List<GroceryItem>();
+            var list = await GetAsListAsync(model.HomeId);
 
+            var found = false;
             for (int i = 0; i != list.Count; i++)
             {
                 var item = list[i];
@@ -73,15 +78,15 @@ namespace GroceryList.Data
             return model;
         } // END AddAsync
 
-        public async Task<GroceryItem> DeleteAsync(GroceryItem model)
+        public async Task<GroceryItem?> DeleteAsync(GroceryItem model)
         {
             // ?? throw ??
             if (string.IsNullOrWhiteSpace(model?.Id)) return null;
             if (string.IsNullOrWhiteSpace(model?.HomeId)) return null;
 
-            var list = await GetListAsync(model.HomeId);
+            var list = await GetAsListAsync(model.HomeId);
 
-            if (list == null) throw new ArgumentOutOfRangeException("No List Found");
+            if (list.Count == 0) throw new ArgumentOutOfRangeException("No List Found");
 
             list.RemoveAll(g =>
             {
@@ -97,13 +102,13 @@ namespace GroceryList.Data
             return model;
         } // END DeleteAsync
 
-        public async Task<List<GroceryItem>> GetCheckoutAsync(string homeId)
+        public async Task<IEnumerable<GroceryItem>> GetCheckoutAsync(string homeId)
         {
             // get the list of items in cart
             var list = await GetListAsync(homeId);
             return list.Where(g => g.InCartTime != null).ToList();
         }
-        //public async Task<List<GroceryItem>> CheckoutAsync(string homeId){
+        //public async Task<IEnumerable<GroceryItem>> CheckoutAsync(string homeId){
         //    // get the list of items in cart
         //    var list = await GetListAsync(homeId);
         //    var origList = list.ToArray();
@@ -132,10 +137,10 @@ namespace GroceryList.Data
         //    // return the trip items
         //    return inCart;
         //} // END CheckoutAsync
-        public async Task<List<GroceryItem>> CheckoutAsync(string homeId, List<string> checkoutItemIds)
+        public async Task<IEnumerable<GroceryItem>> CheckoutAsync(string homeId, List<string> checkoutItemIds)
         {
             // get the list of items in cart
-            var list = await GetListAsync(homeId);
+            var list = await GetAsListAsync(homeId);
             var origList = list.ToArray();
             var inCart = new List<GroceryItem>();
             checkoutItemIds.ForEach(g =>
@@ -171,7 +176,7 @@ namespace GroceryList.Data
             return inCart;
         } // END CheckoutAsync
 
-        public async Task<List<GroceryTrip>> GetTripsAsync(string homeId)
+        public async Task<IEnumerable<GroceryTrip>> GetTripsAsync(string homeId)
         {
             var tripRqst = new DataRequest{
                     HomeId = homeId,

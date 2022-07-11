@@ -20,8 +20,8 @@ namespace GroceryList.Services
 
         public Task<T> GetAsync<T>(string homeId, string storeName);
         public Task<T> GetAsync<T>(Models.DataRequest request);
-        public Task SetAsync(string homeId, string storeName, object data);
-        public Task SetAsync(Models.DataRequest request, object data);
+        public Task SetAsync(string homeId, string storeName, object? data);
+        public Task SetAsync(Models.DataRequest request, object? data);
 
         public Task<List<Models.DataRequestInfo>> ListAsync(string homeId, string actionName, int maxResults = 0);
         public Task<List<Models.DataRequestInfo>> ListAsync(Models.DataRequest request, int maxResults = 0);
@@ -120,13 +120,13 @@ namespace GroceryList.Services
             }
             if (!File.Exists(info.FullName))
             {
-                return default(T);
+                return default;
             }
             using var file = new FileStream(info.FullName, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize, true);
             return await JsonSerializer.DeserializeAsync<T>(file); //, jsonOptions, cancel);
         } // END GetAsync
 
-        public async Task SetAsync(string homeId, string storeName, object data)
+        public async Task SetAsync(string homeId, string storeName, object? data)
         {
             var path = GetFilePath(homeId, storeName);
             var exists = File.Exists(path);
@@ -159,7 +159,7 @@ namespace GroceryList.Services
             }
         } // END SetAsync
 
-        public async Task SetAsync(Models.DataRequest request, object data)
+        public async Task SetAsync(Models.DataRequest request, object? data)
         {
             request.StoreName += Utils.GetNewId();
             var info = GetTypePath(request);

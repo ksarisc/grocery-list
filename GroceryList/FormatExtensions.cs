@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace GroceryList
 {
@@ -17,6 +18,21 @@ namespace GroceryList
         {
             if (self == null) return "";
             return Format(self.Value, includeDate);
+        }
+
+        public static List<T> AsList<T>(this IEnumerable<T> self)
+        {
+            if (self is null)
+            {
+                return new List<T>();
+            }
+
+            if (self is List<T>)
+            {
+                return self as List<T> ?? new List<T>();
+            }
+
+            return new List<T>(self);
         }
     }
 }

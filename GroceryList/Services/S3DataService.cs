@@ -172,9 +172,7 @@ namespace GroceryList.Services
         public async Task SetAsync(Models.DataRequest request, object data)
         {
             if (logger.IsEnabled(LogLevel.Debug))
-            {
-                logger.LogDebug("", request, data);
-            }
+                logger.LogDebug("S3DataService.Set Rqst({@request}) Data({@data})", request, data);
             try
             {
                 request.StoreName += Utils.GetNewId();
@@ -194,7 +192,7 @@ namespace GroceryList.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Set () Error", request, data);
+                logger.LogError(ex, "S3DataService.Set Error Rqst({@request}) Data({@data})", request, data);
             }
         } // END SetAsync
 

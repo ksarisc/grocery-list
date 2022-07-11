@@ -5,27 +5,44 @@ namespace GroceryList.Services;
 
 public class SqlResourceBuilder
 {
+    private const int defaultCapacity = 1000;
     private readonly IResourceMapper map;
     [ThreadStatic]
-    private static StringBuilder sql;
+    private static StringBuilder? sql;
 
     public SqlResourceBuilder(IResourceMapper resourceMapper, string? name = null)
     {
         map = resourceMapper;
-        if (!string.IsNullOrWhiteSpace(name)) Create(name);
+        if (!string.IsNullOrWhiteSpace(name))
+        {
+            var value = map.GetSql(name);
+            sql = CreateBuilder(value);
+        }
+        else
+        {
+            sql = new StringBuilder(defaultCapacity);
+        }
+    }
+
+    private static StringBuilder CreateBuilder(string value)
+    {
+        // check size as well, or just always re-use
+        if (sql == null || value.Length > sql.Capacity)
+        {
+            var sb = new StringBuilder(Math.Max(value.Length, defaultCapacity));
+            sb.Append(value);
+            return sb;
+        }
+
+        sql.Clear();
+        sql.Append(value);
+        return sql;
     }
 
     public SqlResourceBuilder Create(string name)
     {
         var value = map.GetSql(name);
-        // check size as well, or just always re-use
-        if (sql == null) sql = new StringBuilder(value);
-        else
-        {
-            sql.Clear();
-            sql.Append(value);
-        }
-
+        sql = CreateBuilder(value);
         return this;
     }
 
@@ -39,20 +56,20 @@ public class SqlResourceBuilder
             keyName = "{{" + keyName + "}}";
         }
 
-        sql.Replace(keyName, value);
+        sql?.Replace(keyName, value);
         return this;
     }
 
     public SqlResourceBuilder Append(string value)
     {
-        sql.Append(value);
+        sql?.Append(value);
         return this;
     }
 
     public override string ToString()
     {
-        if (sql == null) return base.ToString();
+        if (sql?.Length > 0) sql.ToString();
 
-        return sql.ToString();
+        return base.ToString() ?? "typeof(SqlResourceBuilder)";
     }
 }

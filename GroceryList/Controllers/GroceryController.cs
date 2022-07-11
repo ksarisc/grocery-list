@@ -22,7 +22,7 @@ namespace GroceryList.Controllers
         private readonly Data.IGroceryRepository groceryRepo;
         private readonly ILogger<GroceryController> logger;
 
-        private string homeId;
+        private string homeId = string.Empty;
         [FromRoute]
         public string HomeId
         {
@@ -40,7 +40,7 @@ namespace GroceryList.Controllers
 
         private string GetUser()
         {
-            return HttpContext.Connection.RemoteIpAddress.ToString();
+            return HttpContext.GetRemoteIp();
         }
 
         private async Task SetHomeAsync()
@@ -49,17 +49,17 @@ namespace GroceryList.Controllers
             var localId = HttpContext.GetHomeId();
             if (homeId.Equals(localId, StringComparison.Ordinal)) return;
             // should each page check that the cookie matches the route? sounds like auth?
-            Models.Home home = null;
             try
             {
-                home = await dataSvc.GetHomeAsync(homeId);
+                var home = await dataSvc.GetHomeAsync(homeId);
+                if (home != null) HttpContext.SetHome(home.Id, home.Title);
+                else HttpContext.SetHome(homeId, string.Empty);
             }
             catch (Exception ex)
             {
+                HttpContext.SetHome(homeId, string.Empty);
                 logger.LogError(ex, "Grocery.SetHome ({homeId}) Error", homeId);
             }
-            if (home != null) HttpContext.SetHome(home.Id, home.Title);
-            else HttpContext.SetHome(homeId, string.Empty);
         }
 
         [Route("")]
@@ -280,7 +280,7 @@ namespace GroceryList.Controllers
                 return View(new CheckoutForm
                 {
                     HomeId = homeId,
-                    Items = list,
+                    Items = list.AsList(),
                 });
             }
             catch (Exception ex)
@@ -293,13 +293,13 @@ namespace GroceryList.Controllers
         [HttpPost("checkout")]
         public async Task<IActionResult> Checkout(CheckoutForm model)
         {
-            List<Models.GroceryItem> list = null;
+            IEnumerable<Models.GroceryItem>? list = null;
 
             try
             {
                 // checkout all items currently in cart
                 list = await groceryRepo.CheckoutAsync(homeId, model.ItemIds);
-                TempData["InfoMessage"] = $"{list.Count} items marked as purchased";
+                TempData["InfoMessage"] = $"{list.Count()} items marked as purchased";
                 TempData["ErrorMessage"] = null;
             }
             catch (Exception ex)
