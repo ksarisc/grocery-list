@@ -15,11 +15,11 @@ namespace GroceryList.Services
     public interface IDataService : IDisposable
     {
         public Task<bool> HomeExistsAsync(string homeId);
-        public Task<Models.Home> AddHomeAsync(Models.Home home);
-        public Task<Models.Home> GetHomeAsync(string homeId);
+        public Task<Models.Home?> AddHomeAsync(Models.Home home);
+        public Task<Models.Home?> GetHomeAsync(string homeId);
 
-        public Task<T> GetAsync<T>(string homeId, string storeName);
-        public Task<T> GetAsync<T>(Models.DataRequest request);
+        public Task<T?> GetAsync<T>(string homeId, string storeName);
+        public Task<T?> GetAsync<T>(Models.DataRequest request);
         public Task SetAsync(string homeId, string storeName, object? data);
         public Task SetAsync(Models.DataRequest request, object? data);
 
@@ -63,7 +63,7 @@ namespace GroceryList.Services
         {
             return Task.FromResult(Directory.Exists(Path.Combine(dataPath, homeId)));
         }
-        public async Task<Models.Home> AddHomeAsync(Models.Home home) // should the home be defined prior to add?
+        public async Task<Models.Home?> AddHomeAsync(Models.Home home) // should the home be defined prior to add?
         {
             var logEnabled = logger.IsEnabled(LogLevel.Debug);
             if (logEnabled)
@@ -90,7 +90,7 @@ namespace GroceryList.Services
             }
             return home;
         } // END AddHomeAsync
-        public async Task<Models.Home> GetHomeAsync(string homeId)
+        public async Task<Models.Home?> GetHomeAsync(string homeId)
         {
             var path = Path.Combine(dataPath, homeId, homeFile);
             if (!File.Exists(path))
@@ -101,7 +101,7 @@ namespace GroceryList.Services
             return await JsonSerializer.DeserializeAsync<Models.Home>(file);
         } // END GetHomeAsync
 
-        public async Task<T> GetAsync<T>(string homeId, string storeName)
+        public async Task<T?> GetAsync<T>(string homeId, string storeName)
         {
             var path = GetFilePath(homeId, storeName);
             if (!File.Exists(path))
@@ -111,10 +111,10 @@ namespace GroceryList.Services
             using var file = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize, true);
             return await JsonSerializer.DeserializeAsync<T>(file); //, jsonOptions, cancel);
         }
-        public async Task<T> GetAsync<T>(Models.DataRequest request)
+        public async Task<T?> GetAsync<T>(Models.DataRequest request)
         {
             var info = GetTypePath(request);
-            if (!info.Directory.Exists)
+            if (info.Directory == null || !info.Directory.Exists)
             {
                 throw new ArgumentOutOfRangeException($"Request path ({info.FullName}) NOT valid");
             }
@@ -163,6 +163,17 @@ namespace GroceryList.Services
         {
             request.StoreName += Utils.GetNewId();
             var info = GetTypePath(request);
+            if (info.Directory == null)
+            {
+                var fullName = info.FullName;
+                var pathName = Path.GetDirectoryName(fullName);
+                if (pathName == null)
+                    throw new ArgumentOutOfRangeException(nameof(request), $"Storage path ({fullName}) could NOT be found");
+                Directory.CreateDirectory(pathName);
+                info = new FileInfo(fullName);
+                if (info.Directory == null)
+                    throw new ArgumentOutOfRangeException(nameof(request), $"Storage path ({fullName}) could NOT be found");
+            }
             if (!info.Directory.Exists)
             {
                 info.Directory.Create();

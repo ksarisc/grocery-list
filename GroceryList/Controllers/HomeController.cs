@@ -83,9 +83,14 @@ namespace GroceryList.Controllers
                     CreatedTime = DateTimeOffset.Now,
                     CreatedByMeta = $"IP:{remote}|UserAgent:{Request.Headers["User-Agent"]}",
                 };
-                home = await data.AddHomeAsync(home);
+                var result = await data.AddHomeAsync(home);
+                if (result == null)
+                {
+                    TempData["ErrorMessage"] = $"There was an error creating you home ({homeId}) {home.Title}.";
+                    return View(model);
+                }
 
-                return this.RedirectToGrocery(home.Id, home.Title);
+                return this.RedirectToGrocery(result.Id, result.Title);
             }
             catch (Exception ex)
             {

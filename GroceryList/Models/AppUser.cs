@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace GroceryList.Models
 {
+    #nullable disable
     // I'm planning to use Google, Facebook, Microsoft, or some other
     // auth service, so don't really want to store much locally
     public class AppUser
@@ -28,4 +29,5 @@ namespace GroceryList.Models
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public DateTimeOffset? EditedTime { get; set; }
     }
+    #nullable enable
 }

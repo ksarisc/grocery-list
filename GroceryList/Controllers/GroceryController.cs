@@ -111,7 +111,7 @@ namespace GroceryList.Controllers
                 }
                 //PurchasedTime,PurchasedUser,
                 model = await groceryRepo.AddAsync(model);
-                TempData["InfoMessage"] = $"{model.Name} added";
+                TempData["InfoMessage"] = $"{model?.Name} added";
                 TempData["ErrorMessage"] = null;
                 return this.RedirectToGrocery();
             }
@@ -135,7 +135,7 @@ namespace GroceryList.Controllers
             //TempData["ErrorMessage"] = null; //$"Unable to edit item ({itemId})";
             //return this.RedirectToGrocery();
             var model = await groceryRepo.GetItemAsync(homeId, itemId);
-            return View(model.ToFormModel());
+            return View(model?.ToFormModel());
         }
         [HttpPost("edit/{itemId}")]
         public async Task<IActionResult> Edit([FromRoute] string itemId, [FromForm] GroceryItemForm formModel)
@@ -215,8 +215,8 @@ namespace GroceryList.Controllers
             try
             {
                 //TempData["ErrorMessage"] = $"Unable to delete item ({itemId}) from list";
-                model = await groceryRepo.DeleteAsync(model);
-                TempData["InfoMessage"] = $"Item ({model.Name}) removed from list";
+                var result = await groceryRepo.DeleteAsync(model);
+                TempData["InfoMessage"] = $"Item ({result?.Name}) removed from list";
                 TempData["ErrorMessage"] = null;
             }
             catch (Exception ex)
@@ -249,7 +249,7 @@ namespace GroceryList.Controllers
                 }
                 AddToCart(model);
                 model = await groceryRepo.AddAsync(model);
-                TempData["InfoMessage"] = $"{model.Name} added to cart";
+                TempData["InfoMessage"] = $"{model?.Name} added to cart";
                 TempData["ErrorMessage"] = null;
             }
             catch (Exception ex)

@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace GroceryList.Models
 {
+    #nullable disable
     public class AppRole
     {
         public string Id { get; set; }
@@ -16,4 +17,5 @@ namespace GroceryList.Models
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public DateTimeOffset? EditedTime { get; set; }
     }
+    #nullable enable
 }

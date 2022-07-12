@@ -7,10 +7,10 @@ namespace GroceryList.Models
     {
         [Required]
         [StringLength(100, MinimumLength = 10)]
-        public string Id { get; set; }
+        public string Id { get; set; } = string.Empty;
         [Required]
         [StringLength(50, MinimumLength = 20)]
-        public string HomeId { get; set; }
+        public string HomeId { get; set; } = string.Empty;
         [Required]
         public DateTimeOffset CheckoutTime { get; set; }
     }

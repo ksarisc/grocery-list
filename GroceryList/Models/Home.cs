@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace GroceryList.Models
 {
+    #nullable disable
     public class Home
     {
         [Required]
@@ -18,4 +19,5 @@ namespace GroceryList.Models
         [Required]
         public string CreatedByMeta { get; set; }
     }
+    #nullable enable
 }

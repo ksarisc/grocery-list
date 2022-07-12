@@ -11,8 +11,8 @@ namespace GroceryList.Models
     public readonly struct Result<T> //: IEquatable<Result<T>>, IComparable<Result<T>>
     {
         internal readonly ResultState State;
-        internal readonly T Value;
-        private readonly Exception exception;
+        internal readonly T? Value;
+        private readonly Exception? exception;
         //internal Exception Exception => exception ?? BottomException.Default;
 
         public Result(T value)
@@ -33,7 +33,7 @@ namespace GroceryList.Models
     public readonly struct ApiResult<T>
     {
         public ResultState State { get; }
-        public T Value { get; }
+        public T? Value { get; }
         public string Message { get; }
 
         public ApiResult(T value)

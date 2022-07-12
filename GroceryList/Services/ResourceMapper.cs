@@ -13,8 +13,8 @@ namespace GroceryList.Services
 {
     public interface IResourceMapper : IDisposable
     {
-        public Stream this[string fileName] => Get(fileName);
-        public Stream Get(string fileName);
+        public Stream? this[string fileName] => Get(fileName);
+        public Stream? Get(string fileName);
         public string GetSql(string name);
         public Task<string> GetSqlAsync(string name);
     }
@@ -29,7 +29,7 @@ namespace GroceryList.Services
             me = typeof(ResourceMapper).Assembly;
         }
 
-        public Stream Get(string fileName)
+        public Stream? Get(string fileName)
         {
             // check file name / extension
             return me.GetManifestResourceStream($"GroceryList.Resources.{fileName}");
@@ -42,10 +42,15 @@ namespace GroceryList.Services
             {
                 if (sqlMap.ContainsKey(name)) return sqlMap[name];
 
+                string sql;
                 // retrieve if not currently loaded
                 using var stream = Get($"{name}.sql");
-                using var reader = new StreamReader(stream);
-                var sql = reader.ReadToEnd();
+                if (stream != null)
+                {
+                    using var reader = new StreamReader(stream);
+                    sql = reader.ReadToEnd();
+                }
+                else sql = string.Empty;
                 sqlMap[name] = sql;
                 return sql;
             }
@@ -59,10 +64,15 @@ namespace GroceryList.Services
             {
                 if (sqlMap.ContainsKey(name)) return sqlMap[name];
 
+                string sql;
                 // retrieve if not currently loaded
                 using var stream = Get($"{name}.sql");
-                using var reader = new StreamReader(stream);
-                var sql = await reader.ReadToEndAsync();
+                if (stream != null)
+                {
+                    using var reader = new StreamReader(stream);
+                    sql = await reader.ReadToEndAsync();
+                }
+                else sql = string.Empty;
                 sqlMap[name] = sql;
                 return sql;
             }

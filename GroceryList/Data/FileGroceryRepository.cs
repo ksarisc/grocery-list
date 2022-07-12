@@ -24,7 +24,9 @@ namespace GroceryList.Data
         public async Task<IEnumerable<GroceryItem>> GetListAsync(string homeId)
         {
             // get Home ID & correct current data file
-            return await fileService.GetAsync<List<GroceryItem>>(homeId, currentFile);
+            var list = await fileService.GetAsync<List<GroceryItem>>(homeId, currentFile);
+            if (list != null) return list;
+            return Array.Empty<GroceryItem>();
         }
         public async Task<GroceryItem?> GetItemAsync(string homeId, string itemId)
         {
@@ -35,18 +37,12 @@ namespace GroceryList.Data
             return list.FirstOrDefault(g => g.Id.Equals(itemId, StringComparison.Ordinal));
         }
 
-        private async Task<List<GroceryItem>> GetAsListAsync(string homeId)
-        {
-            var result = await GetListAsync(homeId);
-            return result.AsList();
-        }
-
         public async Task<GroceryItem?> AddAsync(GroceryItem model)
         {
             if (string.IsNullOrWhiteSpace(model?.HomeId)) return null;
             // validate item
 
-            var list = await GetAsListAsync(model.HomeId);
+            var list = (await GetListAsync(model.HomeId)).AsList();
 
             var found = false;
             for (int i = 0; i != list.Count; i++)
@@ -84,7 +80,7 @@ namespace GroceryList.Data
             if (string.IsNullOrWhiteSpace(model?.Id)) return null;
             if (string.IsNullOrWhiteSpace(model?.HomeId)) return null;
 
-            var list = await GetAsListAsync(model.HomeId);
+            var list = (await GetListAsync(model.HomeId)).AsList();
 
             if (list.Count == 0) throw new ArgumentOutOfRangeException("No List Found");
 
@@ -140,7 +136,7 @@ namespace GroceryList.Data
         public async Task<IEnumerable<GroceryItem>> CheckoutAsync(string homeId, List<string> checkoutItemIds)
         {
             // get the list of items in cart
-            var list = await GetAsListAsync(homeId);
+            var list = (await GetListAsync(homeId)).AsList();
             var origList = list.ToArray();
             var inCart = new List<GroceryItem>();
             checkoutItemIds.ForEach(g =>

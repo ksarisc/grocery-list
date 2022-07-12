@@ -8,7 +8,7 @@ public class SqlResourceBuilder
     private const int defaultCapacity = 1000;
     private readonly IResourceMapper map;
     [ThreadStatic]
-    private static StringBuilder? sql;
+    private static StringBuilder sql = new StringBuilder(defaultCapacity / 2);
 
     public SqlResourceBuilder(IResourceMapper resourceMapper, string? name = null)
     {
@@ -56,19 +56,19 @@ public class SqlResourceBuilder
             keyName = "{{" + keyName + "}}";
         }
 
-        sql?.Replace(keyName, value);
+        sql.Replace(keyName, value);
         return this;
     }
 
     public SqlResourceBuilder Append(string value)
     {
-        sql?.Append(value);
+        sql.Append(value);
         return this;
     }
 
     public override string ToString()
     {
-        if (sql?.Length > 0) sql.ToString();
+        if (sql.Length > 0) sql.ToString();
 
         return base.ToString() ?? "typeof(SqlResourceBuilder)";
     }

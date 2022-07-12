@@ -59,6 +59,10 @@ namespace GroceryList.Controllers
         [HttpPost("add")]
         public async Task<ApiResult<GroceryItemForm>> Add([FromBody] GroceryItemForm formModel)
         {
+            var userName = User.Identity?.Name ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(userName))
+                throw new ArgumentException("User NOT found");
+
             if (!ModelState.IsValid)
             {
                 var sb = new System.Text.StringBuilder();
@@ -74,16 +78,18 @@ namespace GroceryList.Controllers
                 var model = formModel.ToModel();
                 model.HomeId = formModel.HomeId;
                 model.CreatedTime = DateTimeOffset.UtcNow;
-                model.CreatedUser = User.Identity.Name; //GetUser();
+                model.CreatedUser = userName; //GetUser();
                 if (formModel.AddToCart && model.InCartTime == null)
                 {
                     model.InCartTime = DateTimeOffset.UtcNow;
-                    model.InCartUser = User.Identity.Name; //GetUser();
+                    model.InCartUser = userName; //GetUser();
                 }
                 //PurchasedTime,PurchasedUser,
-                var result = (await repo.AddAsync(model)).ToFormModel();
+                var result = await repo.AddAsync(model);
+                if (result == null) return new ApiResult<GroceryItemForm>($"Unable to add {model.Name} to list");
+
                 await cache.UpdateAsync("current");
-                return new ApiResult<GroceryItemForm>(result);
+                return new ApiResult<GroceryItemForm>(result.ToFormModel());
             }
             catch (Exception ex)
             {
