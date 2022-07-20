@@ -40,11 +40,12 @@ namespace GroceryList.Services
             logger = dataLogger;
             // need to be able to define the base (for different types of data)
             // also need to have a better locking strategy for updates (none right now)
-            dataPath = options.Value.DataPath;
+            var path = options.Value.DataPath;
             if (Utils.IsLinux)
             {
-                dataPath = options.Value.DataPathLinux;
+                path = options.Value.DataPathLinux;
             }
+            dataPath = path ?? string.Empty;
         }
 
         private string GetFilePath(in string homeId, in string fileName)
