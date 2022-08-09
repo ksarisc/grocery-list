@@ -28,6 +28,21 @@ namespace GroceryList.Models
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public DateTimeOffset? EditedTime { get; set; }
+
+        public static AppUser Empty { get; } = new AppUser
+        {
+            Id = string.Empty,
+            UserName = string.Empty,
+            NormalizedUserName = string.Empty,
+            Email = string.Empty,
+            NormalizedEmail = string.Empty,
+            EmailConfirmed = false,
+            PasswordHash = string.Empty,
+            PhoneNumber = string.Empty,
+            PhoneNumberConfirmed = false,
+            TwoFactorEnabled = false,
+            CreatedTime = DateTimeOffset.MinValue,
+        };
     }
     #nullable enable
 }

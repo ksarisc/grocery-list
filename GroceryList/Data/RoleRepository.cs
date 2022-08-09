@@ -28,7 +28,8 @@ namespace GroceryList.Data
 
         private async Task<AppRole> GetAsync(string roleId)
         {
-            return await fileService.GetAsync<AppRole>(folder, roleId);
+            var role = await fileService.GetAsync<AppRole>(folder, roleId);
+            return role ?? AppRole.Empty;
         }
 
         public Task<IdentityResult> CreateAsync(AppRole role, CancellationToken cancellationToken)
@@ -119,7 +120,7 @@ namespace GroceryList.Data
             var list = await fileService.GetAsync<AppRoleLookup[]>(folder, lookupFile);
             var role = list?.FirstOrDefault(u => u.Name.Equals(normalizedRoleName, StringComparison.OrdinalIgnoreCase));
 
-            if (role == null || string.IsNullOrEmpty(role.Id)) return null;
+            if (role == null || string.IsNullOrEmpty(role.Id)) return AppRole.Empty;
 
             return await GetAsync(role.Id);
         }

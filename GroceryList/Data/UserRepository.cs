@@ -31,6 +31,7 @@ namespace GroceryList.Data
         private async Task UpdateLookups(AppUserLookup lookup)
         {
             var list = await fileService.GetAsync<List<AppUserLookup>>(folder, lookupFile);
+            if (list == null)list = new List<AppUserLookup>();
 
             // remove lookups when Email & UserName are NULL
             if (lookup.Email == null && lookup.UserName == null)
@@ -129,7 +130,8 @@ namespace GroceryList.Data
 
         private async Task<AppUser> GetAsync(string userId)
         {
-            return await fileService.GetAsync<AppUser>(folder, userId); //userStore);
+            var user = await fileService.GetAsync<AppUser>(folder, userId); //userStore);
+            return user ?? AppUser.Empty;
         } // END GetAsync
 
         public async Task<AppUser> FindByIdAsync(string userId, CancellationToken cancellationToken)
@@ -154,7 +156,7 @@ namespace GroceryList.Data
             var list = await fileService.GetAsync<AppUserLookup[]>(folder, lookupFile);
             var user = list?.FirstOrDefault(u => u.UserName.Equals(normalizedUserName, StringComparison.OrdinalIgnoreCase));
 
-            if (user == null || string.IsNullOrEmpty(user.Id)) return null;
+            if (user == null || string.IsNullOrEmpty(user.Id)) return AppUser.Empty;
 
             return await GetAsync(user.Id);
         } // END FindByNameAsync
@@ -166,7 +168,7 @@ namespace GroceryList.Data
             var list = await fileService.GetAsync<AppUserLookup[]>(folder, lookupFile);
             var user = list?.FirstOrDefault(u => u.Email.Equals(normalizedEmail, StringComparison.OrdinalIgnoreCase));
 
-            if (user == null || string.IsNullOrEmpty(user.Id)) return null;
+            if (user == null || string.IsNullOrEmpty(user.Id)) return AppUser.Empty;
 
             return await GetAsync(user.Id);
         } // END FindByEmailAsync

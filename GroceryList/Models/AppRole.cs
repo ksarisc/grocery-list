@@ -16,6 +16,14 @@ namespace GroceryList.Models
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public DateTimeOffset? EditedTime { get; set; }
+
+        public static AppRole Empty { get; } = new AppRole
+        {
+            Id = string.Empty,
+            Name = string.Empty,
+            NormalizedName = string.Empty,
+            CreatedTime = DateTimeOffset.MinValue,
+        };
     }
     #nullable enable
 }
