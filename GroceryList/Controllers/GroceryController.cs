@@ -101,8 +101,7 @@ namespace GroceryList.Controllers
             }
             try
             {
-                var model = formModel.ToModel();
-                model.HomeId = homeId;
+                var model = formModel.ToModel(homeId);
                 model.CreatedTime = DateTimeOffset.UtcNow;
                 model.CreatedUser = GetUser();
                 if (formModel.AddToCart)
@@ -158,7 +157,7 @@ namespace GroceryList.Controllers
             }
             try
             {
-                var model = formModel.ToModel();
+                var model = formModel.ToModel(homeId);
                 if (formModel.AddToCart)
                 {
                     AddToCart(model);

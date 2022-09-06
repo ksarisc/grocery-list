@@ -8,9 +8,9 @@ namespace GroceryList.Models.Forms
     {
         [Required]
         [StringLength(50, MinimumLength = 20)]
-        public string HomeId { get; set; }
+        public string? HomeId { get; set; }
         [StringLength(100, MinimumLength = 2)]
-        public string StoreName { get; set; }
+        public string? StoreName { get; set; }
 
         [Required]
         public string JoinedIds
@@ -26,6 +26,6 @@ namespace GroceryList.Models.Forms
             }
         }
         public List<string> ItemIds { get; } = new List<string>();
-        public List<GroceryItem> Items { get; set; }
+        public List<GroceryItem>? Items { get; set; }
     }
 }

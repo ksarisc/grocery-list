@@ -73,10 +73,13 @@ namespace GroceryList.Controllers
                 //("Unable to add item: check details below");
                 return new ApiResult<GroceryItemForm>(sb.ToString());
             }
+            if (formModel.HomeId == null)
+            {
+                throw new ArgumentNullException(nameof(GroceryItemForm.HomeId));
+            }
             try
             {
-                var model = formModel.ToModel();
-                model.HomeId = formModel.HomeId;
+                var model = formModel.ToModel(formModel.HomeId);
                 model.CreatedTime = DateTimeOffset.UtcNow;
                 model.CreatedUser = userName; //GetUser();
                 if (formModel.AddToCart && model.InCartTime == null)

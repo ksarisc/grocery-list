@@ -13,6 +13,7 @@ namespace GroceryList.Models.Forms
         [Required]
         [StringLength(50, MinimumLength = 4)]
         public string Name { get; set; } = string.Empty;
+
         [StringLength(50, MinimumLength = 2)]
         public string? Brand { get; set; }
         [StringLength(1000, MinimumLength = 4)]
@@ -56,15 +57,29 @@ namespace GroceryList.Models.Forms
                 PurchasedUser = self.PurchasedUser,
             };
         }
-        public static GroceryItem ToModel(this GroceryItemForm self)
+        public static GroceryItem ToModel(this GroceryItemForm self, string homeId)
         {
+            if (string.IsNullOrWhiteSpace(self.HomeId))
+            {
+                self.HomeId = homeId;
+            }
+            else if (!string.Equals(self.HomeId, homeId, StringComparison.Ordinal))
+            {
+                throw new ArgumentOutOfRangeException($"Home ID ({self.HomeId}) NOT Valid!");
+            }
+
+            if (string.IsNullOrWhiteSpace(self.Name))
+            {
+                throw new ArgumentOutOfRangeException(nameof(GroceryItemForm.Name));
+            }
+
             return new GroceryItem
             {
-                Id = self.Id,
+                Id = self.Id, //?? string.Empty,
                 HomeId = self.HomeId,
-                Name = self.Name,
-                Brand = self.Brand,
-                Notes = self.Notes,
+                Name = self.Name.Trim(),
+                Brand = self.Brand?.Trim(),
+                Notes = self.Notes?.Trim(),
                 Price = self.Price,
                 Qty = self.Qty,
                 //AddToCart=self.AddToCart,
