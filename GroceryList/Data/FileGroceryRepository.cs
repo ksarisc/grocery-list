@@ -56,10 +56,10 @@ namespace GroceryList.Data
                         item.Id : Utils.GetNewUuid();
                     model.CreatedTime = item.CreatedTime;
                     model.CreatedUser = item.CreatedUser;
-                    model.InCartTime = item.InCartTime;
-                    model.InCartUser = item.InCartUser;
-                    model.PurchasedTime = item.PurchasedTime;
-                    model.PurchasedUser = item.PurchasedUser;
+                    //model.InCartTime = item.InCartTime;
+                    //model.InCartUser = item.InCartUser;
+                    //model.PurchasedTime = item.PurchasedTime;
+                    //model.PurchasedUser = item.PurchasedUser;
                     list[i] = model;
                     break;
                 }

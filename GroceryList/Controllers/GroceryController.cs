@@ -98,10 +98,6 @@ namespace GroceryList.Controllers
             formModel.CreatedUser = user;
             ModelState.Remove(nameof(GroceryItemForm.Id));
             ModelState.Remove(nameof(GroceryItemForm.CreatedUser));
-            //if (ModelState[nameof(GroceryItemForm.Id)]?.Errors.Count > 0) ModelState[nameof(GroceryItemForm.Id)].Errors.Clear();
-            //if (ModelState[nameof(GroceryItemForm.CreatedUser)]?.Errors.Count > 0) ModelState[nameof(GroceryItemForm.CreatedUser)].Errors.Clear();
-            //this.SetHomeId(homeId);
-            //ModelState.ClearValidationState
             if (!ModelState.IsValid)
             {
                 TempData["ErrorMessage"] = $"Unable to add item: check details below";
