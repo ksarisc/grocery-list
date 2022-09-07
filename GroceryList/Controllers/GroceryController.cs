@@ -93,7 +93,15 @@ namespace GroceryList.Controllers
         [HttpPost("add")]
         public async Task<IActionResult> Add([FromForm] GroceryItemForm formModel)
         {
+            var user = GetUser();
+            //formModel.Id = "temp";
+            formModel.CreatedUser = user;
+            ModelState.Remove(nameof(GroceryItemForm.Id));
+            ModelState.Remove(nameof(GroceryItemForm.CreatedUser));
+            //if (ModelState[nameof(GroceryItemForm.Id)]?.Errors.Count > 0) ModelState[nameof(GroceryItemForm.Id)].Errors.Clear();
+            //if (ModelState[nameof(GroceryItemForm.CreatedUser)]?.Errors.Count > 0) ModelState[nameof(GroceryItemForm.CreatedUser)].Errors.Clear();
             //this.SetHomeId(homeId);
+            //ModelState.ClearValidationState
             if (!ModelState.IsValid)
             {
                 TempData["ErrorMessage"] = $"Unable to add item: check details below";
@@ -103,7 +111,7 @@ namespace GroceryList.Controllers
             {
                 var model = formModel.ToModel(homeId);
                 model.CreatedTime = DateTimeOffset.UtcNow;
-                model.CreatedUser = GetUser();
+                model.CreatedUser = user;
                 if (formModel.AddToCart)
                 {
                     AddToCart(model);
