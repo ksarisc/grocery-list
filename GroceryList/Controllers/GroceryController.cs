@@ -293,6 +293,7 @@ namespace GroceryList.Controllers
             }
             return this.RedirectToGrocery();
         } // END Checkout
+
         [HttpPost("checkout")]
         public async Task<IActionResult> Checkout(CheckoutForm model)
         {
@@ -312,5 +313,25 @@ namespace GroceryList.Controllers
             }
             return this.RedirectToGrocery();
         } // END Checkout
+
+        [HttpGet("previous-trips")]
+        [HttpGet("previoustrips")]
+        public async Task<IActionResult> PreviousTrips()
+        {
+            var result = new Models.Forms.GroceryTripForm();
+            try
+            {
+                var list = await groceryRepo.GetTripsAsync(homeId);
+                if (list.Any()) result.Items = list;
+                TempData["InfoMessage"] = $"{list.Count()} trips found";
+                TempData["ErrorMessage"] = null;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "PreviousTrips Error: {0}", homeId);
+                ViewData["ErrorMessage"] = "Unable to retrieve previous trips";
+            }
+            return View(result);
+        }
     }
 }

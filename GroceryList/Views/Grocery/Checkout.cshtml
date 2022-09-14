@@ -2,6 +2,7 @@
 @{
 	ViewData["Title"] = "Checkout";
 	double total = 0.00;
+	var itemList = Model.Items ?? new List<GroceryItem>();
 }
 <div class="text-center">
 	<h1>@ViewData["Title"]</h1>
@@ -21,7 +22,7 @@
 	</thead>
 	<tbody>
 		@* ADD *@
-		@foreach (var item in Model.Items)
+		@foreach (var item in itemList)
 		{
 			total += @item.Price ?? 0;
 			<tr data-id="@item.Id">@{ Model.ItemIds.Add(item.Id); }
