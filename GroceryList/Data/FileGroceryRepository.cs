@@ -42,6 +42,9 @@ namespace GroceryList.Data
             if (string.IsNullOrWhiteSpace(model?.HomeId)) return null;
             // validate item
 
+            // clean fields in model
+            //model.Name = model.Name.Trim();
+
             var list = (await GetListAsync(model.HomeId)).AsList();
 
             var found = false;

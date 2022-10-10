@@ -18,7 +18,7 @@ namespace GroceryList.Controllers
     [Route(HomeRouteFilter.Route)]
     public class GroceryController : Controller
     {
-        private readonly Services.IDataService dataSvc;
+        private readonly IDataService dataSvc;
         private readonly Data.IGroceryRepository groceryRepo;
         private readonly ILogger<GroceryController> logger;
 
@@ -30,8 +30,7 @@ namespace GroceryList.Controllers
             set { homeId = value; }
         }
 
-        public GroceryController(Services.IDataService dataService,
-            Data.IGroceryRepository groceryRepository, ILogger<GroceryController> groceryLogger)
+        public GroceryController(IDataService dataService, Data.IGroceryRepository groceryRepository, ILogger<GroceryController> groceryLogger)
         {
             dataSvc = dataService;
             groceryRepo = groceryRepository;
