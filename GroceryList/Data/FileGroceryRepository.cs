@@ -140,7 +140,7 @@ namespace GroceryList.Data
         //    // return the trip items
         //    return inCart;
         //} // END CheckoutAsync
-        public async Task<IEnumerable<GroceryItem>> CheckoutAsync(string homeId, List<string> checkoutItemIds)
+        public async Task<IEnumerable<GroceryItem>> CheckoutAsync(string homeId, List<string> checkoutItemIds, string? storeName)
         {
             // get the list of items in cart
             var list = (await GetListAsync(homeId)).AsList();

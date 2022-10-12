@@ -118,8 +118,10 @@ namespace GroceryList.Data
             if (list == null) return Array.Empty<GroceryItem>();
             return list;
         }
-        public async Task<IEnumerable<GroceryItem>> CheckoutAsync(string homeId, List<string> checkoutItemIds)
+        public async Task<IEnumerable<GroceryItem>> CheckoutAsync(string homeId, List<string> checkoutItemIds, string? storeName)
         {
+            throw new NotImplementedException();
+
             var sql = GetCheckoutSql(homeId);
             sql.Append(" `id` IN(@Ids)");
 

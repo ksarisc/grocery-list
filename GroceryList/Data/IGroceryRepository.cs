@@ -23,7 +23,7 @@ namespace GroceryList.Data
         public Task<GroceryItem?> DeleteAsync(GroceryItem model);
 
         public Task<IEnumerable<GroceryItem>> GetCheckoutAsync(string homeId);
-        public Task<IEnumerable<GroceryItem>> CheckoutAsync(string homeId, List<string> checkoutItemIds);
+        public Task<IEnumerable<GroceryItem>> CheckoutAsync(string homeId, List<string> checkoutItemIds, string? storeName);
 
         public Task<IEnumerable<GroceryTrip>> GetTripsAsync(string homeId);
     }

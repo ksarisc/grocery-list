@@ -13,5 +13,7 @@ namespace GroceryList.Models
         public string HomeId { get; set; } = string.Empty;
         [Required]
         public DateTimeOffset CheckoutTime { get; set; }
+
+        public string? StoreName { get; set; }
     }
 }

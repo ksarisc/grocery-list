@@ -296,19 +296,28 @@ namespace GroceryList.Controllers
         [HttpPost("checkout")]
         public async Task<IActionResult> Checkout(CheckoutForm model)
         {
+            //if (model == null) { }
+            if (homeId != model.HomeId)
+            {
+                logger.LogError("Home `{0}` does NOT match model home ID `{1}` :: CHECKOUT: {2}", homeId,
+                    model.HomeId, System.Text.Json.JsonSerializer.Serialize(model));
+                TempData["ErrorMessage"] = "Checkout NOT Valid";
+                return this.RedirectToGrocery();
+            }
+
             IEnumerable<Models.GroceryItem>? list = null;
 
             try
             {
                 // checkout all items currently in cart
-                list = await groceryRepo.CheckoutAsync(homeId, model.ItemIds);
+                list = await groceryRepo.CheckoutAsync(homeId, model.ItemIds, model.StoreName);
                 TempData["InfoMessage"] = $"{list.Count()} items marked as purchased";
                 TempData["ErrorMessage"] = null;
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Checkout Error: {0} (InCart: {1})", homeId, list);
-                ViewData["ErrorMessage"] = "Checkout failed";
+                TempData["ErrorMessage"] = "Checkout failed";
             }
             return this.RedirectToGrocery();
         } // END Checkout
