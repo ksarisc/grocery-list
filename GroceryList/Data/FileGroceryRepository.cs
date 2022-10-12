@@ -160,13 +160,20 @@ namespace GroceryList.Data
             // save the trip
             try
             {
+                if (storeName == null) storeName = "NA";
+                var tripData = new GroceryTripData
+                {
+                    StoreName = storeName,
+                    Items = inCart.ToArray(),
+                };
+
                 var tripRqst = new DataRequest
                 {
                     HomeId = homeId,
-                    StoreName = currentFile,
+                    StoreName = currentFile, //$"{DateTime.UtcNow:yyyyMMdd_HHmmss}_{storeName}",
                     ActionName = "trip",
                 };
-                await fileService.SetAsync(tripRqst, inCart);
+                await fileService.SetAsync(tripRqst, tripData);
             }
             catch (Exception)
             {
