@@ -60,6 +60,7 @@ namespace GroceryList.Data
         }
         public async Task<GroceryItem?> GetItemAsync(string homeId, string itemId)
         {
+            // JACOB: FUTURE IDEA: make these strings only allocate once
             var sql = new SqlResourceBuilder(map, "Grocery.SelectCurrent");
             sql.Replace(nameof(homeId), homeId);
             sql.Append("ItemId = @ItemId;");
