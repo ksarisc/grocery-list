@@ -13,6 +13,7 @@ namespace GroceryList.Controllers
         private readonly Services.IDataService data;
         private readonly ILogger<HomeController> logger;
         private readonly bool allowAdd = false;
+        private readonly string[]? allowAddrs;
 
         public HomeController(Services.IDataService dataService, ILogger<HomeController> homeLogger,
                         IOptions<Models.Config.GeneralConfig> options)
@@ -22,6 +23,10 @@ namespace GroceryList.Controllers
             if (options != null && options.Value != null)
             {
                 allowAdd = options.Value.AllowHomeCreation;
+                if (options.Value.AllowedIpAddresses?.Length > 0)
+                {
+                    allowAddrs = options.Value.AllowedIpAddresses;
+                }
             }
         }
 
@@ -56,12 +61,18 @@ namespace GroceryList.Controllers
                 TempData["ErrorMessage"] = "You are NOT able to add homes currently.";
                 return View(model);
             }
+            var remote = HttpContext.GetRemoteIp();
+            if (allowAddrs != null && !Array.Exists(allowAddrs, a => remote.Equals(a, StringComparison.Ordinal)))
+            {
+                TempData["ErrorMessage"] = "You are NOT able to add homes currently.";
+                return View(model);
+            }
 
-            string homeId = null;
+            string? homeId = null;
             try
             {
                 // after validation, setup the new home
-                homeId = Guid.NewGuid().ToString();
+                homeId = Utils.GetNewUuid();
                 // if an error happens in save, should a new GUID be generated?
                 var home = new Models.Home
                 {
@@ -70,11 +81,16 @@ namespace GroceryList.Controllers
                     CreatedBy = model.CreatedBy,
                     // creation details w/. meta
                     CreatedTime = DateTimeOffset.Now,
-                    CreatedByMeta = $"IP:{HttpContext.Connection.RemoteIpAddress}|UserAgent:{Request.Headers["User-Agent"]}",
+                    CreatedByMeta = $"IP:{remote}|UserAgent:{Request.Headers["User-Agent"]}",
                 };
-                home = await data.AddHomeAsync(home);
+                var result = await data.AddHomeAsync(home);
+                if (result == null)
+                {
+                    TempData["ErrorMessage"] = $"There was an error creating you home ({homeId}) {home.Title}.";
+                    return View(model);
+                }
 
-                return this.RedirectToGrocery(homeId);
+                return this.RedirectToGrocery(result.Id, result.Title);
             }
             catch (Exception ex)
             {

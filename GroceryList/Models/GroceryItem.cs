@@ -8,7 +8,7 @@ namespace GroceryList.Models
     {
         [Required]
         [StringLength(50, MinimumLength = 20)]
-        public string Id { get; set; }
+        public string? Id { get; set; }
         [Required]
         [StringLength(50, MinimumLength = 20)]
         public string HomeId { get; set; }
@@ -17,14 +17,17 @@ namespace GroceryList.Models
         public string Name { get; set; }
         [StringLength(50, MinimumLength = 2)]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public string Brand { get; set; }
+        public string? Brand { get; set; }
         // ?? Metadata ??
         [StringLength(1000, MinimumLength = 4)]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public string Notes { get; set; }
+        public string? Notes { get; set; }
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public double? Price { get; set; }
+        // ?? assume NULL is 1 ??
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public int? Qty { get; set; }
 
         [Required]
         public DateTimeOffset CreatedTime { get; set; }
@@ -33,10 +36,10 @@ namespace GroceryList.Models
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public DateTimeOffset? InCartTime { get; set; }
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public string InCartUser { get; set; }
+        public string? InCartUser { get; set; }
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public DateTimeOffset? PurchasedTime { get; set; }
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public string PurchasedUser { get; set; }
+        public string? PurchasedUser { get; set; }
     }
 }

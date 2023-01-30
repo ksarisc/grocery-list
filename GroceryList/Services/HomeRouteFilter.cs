@@ -18,7 +18,7 @@ namespace GroceryList.Services
 
         public HomeRouteFilter() { }
 
-        private string GetFromModelState(ActionExecutingContext context)
+        private string? GetFromModelState(ActionExecutingContext context)
         {
             if (context.ModelState.TryGetValue(Parameter, out var value) &&
                 value.RawValue is string homeSlug &&
@@ -49,7 +49,7 @@ namespace GroceryList.Services
             }
         } // END OnActionExecutionAsync
 
-        public static string GetSlug(HttpContext context = null)
+        public static string? GetSlug(HttpContext? context = null)
         {
             if (context?.Request?.RouteValues?.ContainsKey(Parameter) == true)
             {

@@ -63,7 +63,7 @@ namespace GroceryList.Data
     //        // ID value MUST be set
     //        if (string.IsNullOrWhiteSpace(model.Id))
     //        {
-    //            model.Id = Guid.NewGuid().ToString();
+    //            model.Id = Utils.GetNewUuid();
     //        }
 
     //        // is get needed at all, since we're just setting is at the end

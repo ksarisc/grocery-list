@@ -9,6 +9,10 @@ namespace GroceryList
             return "_" + DateTime.Now.ToString("yyyyMMdd_HHmmss_fff");
         }
 
+        public static string GetNewUuid(){
+            return Guid.NewGuid().ToString("d").ToLower();
+        }
+
         /// SOURCE: https://stackoverflow.com/questions/5116977/how-to-check-the-os-version-at-runtime-e-g-on-windows-or-linux-without-using
         public static bool IsLinux
         {

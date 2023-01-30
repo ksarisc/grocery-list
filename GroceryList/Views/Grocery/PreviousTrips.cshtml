@@ -1,0 +1,31 @@
+﻿@model GroceryList.Models.Forms.GroceryTripForm
+@{
+	ViewData["Title"] = "Previous Trips";
+}
+<div class="text-center">
+	<h1>@ViewData["Title"]</h1>
+</div>
+<partial name="_MessagePartial" />
+
+<table class="table">
+	<thead>
+		<tr>
+			<th class="hide">ID</th>
+			<th class="hide">Home ID</th>
+			<th>Checkout Time</th>
+			<th></th>
+		</tr>
+	</thead>
+	<tbody>
+		@* ADD *@
+		@foreach (var item in Model.Items)
+		{
+			<tr data-id="@item.Id">
+				<td class="hide">@item.Id</td>
+				<td class="hide">@item.HomeId</td>
+				<td>@item.CheckoutTime.Format(includeDate: true)</td>
+				<td><button type="button" onclick="handleRowClick(this);" value="1" data-id="@item.Id">Review</button></td>
+			</tr>
+		}
+	</tbody>
+</table>
