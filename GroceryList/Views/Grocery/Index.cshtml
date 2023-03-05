@@ -1,4 +1,4 @@
-﻿@model List<GroceryList.Models.GroceryItem>
+﻿@model IEnumerable<GroceryList.Models.GroceryItem>
 @{
 	 ViewData["Title"] = "Current Grocery List";
 	 //<a asp-route-homeId="@ViewData["HomeId"]" asp-controller="Grocery" asp-action="Add">
@@ -16,6 +16,13 @@
 }
 else
 {
+	<form-group id="hideable-button-group">
+		<input type="button" value="Add Item" class="btn btn-primary"
+		   onclick="location.href='@Url.GetGroceryUrl(ViewContext, "Add")';" />
+		<input type="button" value="Checkout" class="btn btn-primary"
+		   onclick="location.href='@Url.GetGroceryUrl(ViewContext, "Checkout")';" />
+	</form-group>
+
 	<table class="table">
 		<thead>
 			<tr>
@@ -35,15 +42,15 @@ else
 			{
 				total += (item.InCartTime != null && item.Price != null ? item.Price.Value : 0.00);
 				<tr>
-					<td><a href="@Url.GetGroceryUrl(ViewContext, "Delete", itemId: item.Id)">delete</a></td>
+					<td><a href="@Url.GetGroceryUrl(ViewContext, "Delete", itemId: item.Id)"><img src="~/images/delete.svg" alt="delete" height="40px" width="40px" /></a></td>
 					<td>@item.Name</td>
 					<td class="d-none d-lg-table-cell">@item.Brand</td>
 					<td class="d-none d-lg-table-cell">@item.Price</td>
 					<td>@item.CreatedTime.Format(includeDate: true)</td>
 					<td>@(item.InCartTime != null ? "YES" : "")</td>
 					@* EDIT *@
-					<td><a href="@Url.GetGroceryUrl(ViewContext, "Edit", itemId: item.Id)">edit</a></td>
-					<td><a href="@Url.GetGroceryUrl(ViewContext, "ToCart", itemId: item.Id)">add</a></td>
+					<td><a href="@Url.GetGroceryUrl(ViewContext, "Edit", itemId: item.Id)"><img src="~/images/edit.svg" alt="edit" height="40px" width="40px" /></a></td>
+					<td><a href="@Url.GetGroceryUrl(ViewContext, "ToCart", itemId: item.Id)"><img src="~/images/add-to-cart.svg" alt="add" height="40px" width="40px" /></a></td>
 				</tr>
 			}
 		</tbody>
@@ -61,4 +68,17 @@ else
 		<input type="button" value="Checkout" class="btn btn-primary"
 				 onclick="location.href='@Url.GetGroceryUrl(ViewContext, "Checkout")';" />
 	</form-group>
+
+	<div>
+		<div>Attributions</div>
+		<div>
+			@*From <a href="https://iconscout.com">IconScout</a>*@
+			<a href="https://iconscout.com/icons/delete" target="_blank">Delete Icon</a> by <a href="https://iconscout.com/contributors/theiconz">The Icon Z</a>
+			and
+			<a href="https://iconscout.com/icons/edit" target = "_blank" > Edit Icon </a> by <a href="https://iconscout.com/contributors/eva-icons" >Akveo</a>
+			and
+			<a href="https://iconscout.com/icons/add-to-cart" target="_blank">Add to cart Icon</a> by <a href="https://iconscout.com/contributors/google-inc">Google Inc.</a>
+			on <a href="https://iconscout.com">IconScout</a>
+		</div>
+	</div>
 }

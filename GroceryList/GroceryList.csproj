@@ -23,4 +23,8 @@
     <EmbeddedResource Include="Resources\Grocery\AddOrUpdate.sql" />
     <EmbeddedResource Include="Resources\Grocery\SelectCurrent.sql" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="wwwroot\images\" />
+  </ItemGroup>
 </Project>

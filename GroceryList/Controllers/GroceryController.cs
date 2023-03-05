@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -69,7 +70,10 @@ namespace GroceryList.Controllers
 
             // display the current list
             var list = await groceryRepo.GetListAsync(homeId);
-            return View(list);
+            //if (list != null)
+            // JACOB: future: sort by `x.Section` as well
+            var sorted = list.OrderBy(x => x.Name).ToList();
+            return View(sorted);
         }
 
         private Models.GroceryItem AddToCart(Models.GroceryItem model)
