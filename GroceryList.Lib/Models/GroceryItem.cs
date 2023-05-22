@@ -13,8 +13,11 @@ namespace GroceryList.Lib.Models
         [StringLength(50, MinimumLength = 20)]
         public string HomeId { get; set; }
         [Required]
-        [StringLength(50, MinimumLength = 4)]
+        [StringLength(50, MinimumLength = 2)]
         public string Name { get; set; }
+        [StringLength(50, MinimumLength = 2)]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public string? Section { get; set; }
         [StringLength(50, MinimumLength = 2)]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? Brand { get; set; }

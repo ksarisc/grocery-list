@@ -70,10 +70,7 @@ namespace GroceryList.Controllers
 
             // display the current list
             var list = await groceryRepo.GetListAsync(homeId);
-            //if (list != null)
-            // JACOB: future: sort by `x.Section` as well
-            var sorted = list.OrderBy(x => x.Name).ToList();
-            return View(sorted);
+            return View(list);
         }
 
         private Models.GroceryItem AddToCart(Models.GroceryItem model)

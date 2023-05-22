@@ -13,6 +13,8 @@ Default home is configurable for user hosting so that all users on instance have
     * Requested Store?
     * Last Purchased Date?
     * Last Price?
+	
+	* when entering price display the last purchased to be able to review (in view)
 
 ## Tests
 * AddItem

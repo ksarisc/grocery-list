@@ -25,8 +25,11 @@ namespace GroceryList.Data
         {
             // get Home ID & correct current data file
             var list = await fileService.GetAsync<List<GroceryItem>>(homeId, currentFile);
-            if (list != null) return list;
-            return Array.Empty<GroceryItem>();
+            if (list == null || list.Count == 0) return Array.Empty<GroceryItem>();
+
+            // JACOB: future: sort by `x.Section` as well
+            var sorted = list.OrderBy(x => x.InCartTime != null).ThenBy(x => x.Name).ToList();
+            return sorted;
         }
         public async Task<GroceryItem?> GetItemAsync(string homeId, string itemId)
         {
@@ -34,7 +37,7 @@ namespace GroceryList.Data
             if (list == null) return null;
             if (!list.Any()) return null;
 
-            return list.FirstOrDefault(g => g.Id.Equals(itemId, StringComparison.Ordinal));
+            return list.FirstOrDefault(g => string.Equals(g.Id, itemId, StringComparison.Ordinal));
         }
 
         public async Task<GroceryItem?> AddAsync(GroceryItem model)
