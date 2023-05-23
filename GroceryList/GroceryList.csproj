@@ -8,6 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Data\Sql\Home_Create.sql" />
+    <None Remove="Data\Sql\Item_Get.sql" />
+    <None Remove="Data\Sql\List_Get.sql" />
+    <None Remove="Data\Sql\PreviousTrips_Get.sql" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AWSSDK.S3" Version="3.7.7.17" />
     <PackageReference Include="Dapper" Version="2.0.123" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="6.0.0" />
@@ -20,12 +27,18 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Data\Sql\Item_Get.sql" />
+    <EmbeddedResource Include="Data\Sql\List_Get.sql" />
+    <EmbeddedResource Include="Data\Sql\PreviousTrips_Get.sql" />
     <EmbeddedResource Include="Resources\Grocery\AddOrUpdate.sql" />
     <EmbeddedResource Include="Resources\Grocery\SelectCurrent.sql" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Data\Sql\" />
     <Folder Include="wwwroot\images\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Data\Sql\Home_Create.sql" />
   </ItemGroup>
 </Project>
