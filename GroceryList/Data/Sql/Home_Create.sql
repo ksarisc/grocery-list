@@ -9,46 +9,32 @@ END;
 
 -- create the current list table
 CREATE TABLE `{0}_current_trip` (
-    -- [StringLength(50, MinimumLength = 20)]
-    trip_id uint not null autoincrement,
-    -- [StringLength(50, MinimumLength = 20)]
-    HomeId uint not null,
-    -- [StringLength(50, MinimumLength = 2)]
-    Name varchar(50) NOT NULL,
-    -- [StringLength(50, MinimumLength = 2)]
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public string? Section { get; set; }
-    -- [StringLength(50, MinimumLength = 2)]
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public string? Brand { get; set; }
-
-    -- [StringLength(1000, MinimumLength = 4)]
-        public string? Notes
-
-        public double? Price
-    -- ?? assume NULL is 1 ??
-        public int? Qty
-
-        [Required]
-        public DateTimeOffset CreatedTime { get; set; }
-        [Required]
-        public string CreatedUser { get; set; }
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public DateTimeOffset? InCartTime { get; set; }
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public string? InCartUser { get; set; }
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public DateTimeOffset? PurchasedTime { get; set; }
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public string? PurchasedUser { get; set; }
-
-	checkout_at datetimeoffset NOT NULL,
-	item_list nvarchar(MAX) NOT NULL,
-);
+    `item_id` uint not null autoincrement primary key,
+    `home_id` uint not null,
+    `name` varchar(50) NOT NULL,
+    `section` varchar(50),
+    `brand` varchar(50),
+    `notes` varchar(1000),
+    `price` double,
+    `qty` int,
+    `created_at` datetime,
+    `created_tz` varchar(40),
+    `created_user` varchar(50) NOT NULL,
+    `in_cart_at` datetime,
+    `in_cart_tz` varchar(40),
+    `in_cart_user` varchar(50),
+    `purchased_at` datetime,
+    `purchased_tz` varchar(40),
+    `purchased_user` varchar(50)
+) DEFAULT CHARSET=utf8mb4;
 
 
 -- create the previous trips table
 CREATE TABLE `{0}_previous_trips` (
-	checkout_at datetimeoffset NOT NULL,
-	item_list nvarchar(MAX) NOT NULL,
-);
+    -- `trip_id` uint64 not null autoincrement primary key,
+    `checkout_at` datetime primary key,
+    `checkout_tz` varchar(40),
+	`item_list` JSON NOT NULL,
+    `store_name` varchar(100),
+    `total` double
+) DEFAULT CHARSET=utf8mb4;

@@ -9,6 +9,7 @@ namespace GroceryList.Models
     public class AppUser
     {
         public string Id { get; set; }
+        public string HomeId { get; set; }
 
         public string UserName { get; set; }
         public string NormalizedUserName { get; set; }
