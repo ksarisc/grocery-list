@@ -1,3 +1,3 @@
 DELETE
-FROM `{{homeId}}grocery_list_current`
-WHERE `id` = @Id;
+FROM `{{homeId}}_current_list`
+WHERE `item_id` = @Id;

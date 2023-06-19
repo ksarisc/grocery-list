@@ -11,16 +11,6 @@ namespace GroceryList.Data
 {
     public class DbGroceryRepository : IGroceryRepository
     {
-        //         private const string sqlCurrentSelect = @"SELECT `id` Id, `home_id` HomeId, `name` Name, `brand` Brand, `notes` Notes,
-        //     `price` Price, `qty` Qty, `created_time` CreatedTime, `created_user` CreatedUser, `in_cart_time` InCartTime,
-        //     `in_cart_user` InCartUser, `purchased_time` PurchasedTime, `purchased_user` PurchasedUser
-        // FROM `grocery_list_current` WHERE ";
-        //         private const string sqlCurrent = sqlCurrentSelect + "1 = 1;";
-        //         private const string sqlGetItem = sqlCurrentSelect + "ItemId = @ItemId";
-        //         private const string sqlSetItem = @"";
-        //         private const string sqlDeleteItem = "";
-        //         private const string sqlGetCheckout = "";
-
         private readonly string connect;
         private readonly DbProviderFactory factory;
         private readonly IResourceMapper map;
@@ -81,7 +71,7 @@ namespace GroceryList.Data
             sql.Replace("homeId", model.HomeId);
             var select = await map.GetSqlAsync("Grocery.SelectCurrent");
             sql.Replace("SelectQuery", select);
-            sql.Append("ItemId = @ItemId;");
+            sql.Append("`item_id` = @Id;");
             await using var conn = GetConnection(model.HomeId);
             return await conn.QueryFirstOrDefaultAsync<GroceryItem>(sql.ToString(), model);
         }
@@ -124,7 +114,8 @@ namespace GroceryList.Data
             throw new NotImplementedException();
 
             var sql = GetCheckoutSql(homeId);
-            sql.Append(" `id` IN(@Ids)");
+            // create parameter for each item in list?
+            sql.Append(" `item_id` IN(@Ids)");
 
             await using var conn = GetConnection(homeId);
             var list = await conn.QueryAsync<GroceryItem>(sql.ToString(), new { Ids = checkoutItemIds, });

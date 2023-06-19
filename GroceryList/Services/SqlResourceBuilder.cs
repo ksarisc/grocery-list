@@ -10,7 +10,7 @@ public class SqlResourceBuilder
     [ThreadStatic]
     private static StringBuilder sql = new StringBuilder(defaultCapacity / 2);
 
-    public SqlResourceBuilder(IResourceMapper resourceMapper, string? name = null)
+    public SqlResourceBuilder(IResourceMapper resourceMapper, string name, int homeId)
     {
         map = resourceMapper;
         if (!string.IsNullOrWhiteSpace(name))
