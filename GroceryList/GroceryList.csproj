@@ -34,7 +34,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Data\Sql\DB_Setup.sql" />
+    <EmbeddedResource Include="Resources\DB_Setup.sql" />
     <EmbeddedResource Include="Data\Sql\Item_Get.sql" />
     <EmbeddedResource Include="Data\Sql\List_Get.sql" />
     <EmbeddedResource Include="Data\Sql\PreviousTrips_Get.sql" />
