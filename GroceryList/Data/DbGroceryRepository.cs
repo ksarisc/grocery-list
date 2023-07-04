@@ -2,6 +2,7 @@ using Dapper;
 using GroceryList.Models;
 using GroceryList.Services;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -14,13 +15,15 @@ namespace GroceryList.Data
         private readonly string connect;
         private readonly DbProviderFactory factory;
         private readonly IResourceMapper map;
+        private readonly ILogger<DbGroceryRepository> logger;
 
-        public DbGroceryRepository(DbProviderFactory dbProviderFactory, IResourceMapper resourceMapper, IConfiguration configuration)
+        public DbGroceryRepository(DbProviderFactory dbProviderFactory, IResourceMapper resourceMapper, IConfiguration configuration, ILogger<DbGroceryRepository> groceryLogger)
         {
             factory = dbProviderFactory;
             // TODO: probably should make this less verbose
             connect = configuration.GetConnectionString("GroceriesData");
             map = resourceMapper;
+            logger = groceryLogger;
         }
 
         private DbConnection GetConnection(string homeId)
@@ -40,8 +43,7 @@ namespace GroceryList.Data
 
         public async Task<IEnumerable<GroceryItem>> GetListAsync(string homeId)
         {
-            var sql = new SqlResourceBuilder(map, "Grocery.SelectCurrent");
-            sql.Replace(nameof(homeId), homeId);
+            var sql = new SqlResourceBuilder(map, "Grocery.SelectCurrent", homeId, logger);
             sql.Append("1 = 1");
             await using var conn = GetConnection(homeId);
             var query = await conn.QueryAsync<GroceryItem>(sql.ToString());
@@ -52,8 +54,7 @@ namespace GroceryList.Data
         public async Task<GroceryItem?> GetItemAsync(string homeId, string itemId)
         {
             // JACOB: FUTURE IDEA: make these strings only allocate once
-            var sql = new SqlResourceBuilder(map, "Grocery.SelectCurrent");
-            sql.Replace(nameof(homeId), homeId);
+            var sql = new SqlResourceBuilder(map, "Grocery.SelectCurrent", homeId, logger);
             sql.Append("ItemId = @ItemId;");
             await using var conn = GetConnection(homeId);
             return await conn.QueryFirstOrDefaultAsync<GroceryItem>(sql.ToString(),
@@ -68,8 +69,7 @@ namespace GroceryList.Data
         public async Task<GroceryItem?> AddAsync(GroceryItem model)
         {
 
-            var sql = new SqlResourceBuilder(map, "Grocery.AddOrUpdate");
-            sql.Replace("homeId", model.HomeId);
+            var sql = new SqlResourceBuilder(map, "Grocery.AddOrUpdate", model.HomeId, logger);
             var select = await map.GetSqlAsync("Grocery.SelectCurrent");
             sql.Replace("SelectQuery", select);
             sql.Append("`item_id` = @Id;");
@@ -84,8 +84,7 @@ namespace GroceryList.Data
         /// <returns>GroceryItem</returns>
         public async Task<GroceryItem?> DeleteAsync(GroceryItem model)
         {
-            var sql = new SqlResourceBuilder(map, "Grocery.DeleteCurrent");
-            sql.Replace("homeId", model.HomeId);
+            var sql = new SqlResourceBuilder(map, "Grocery.DeleteCurrent", model.HomeId, logger);
             await using var conn = GetConnection(model.HomeId);
             var count = await conn.ExecuteAsync(sql.ToString(), new { Id = model.Id });
             return count == 0 ? null : model;
@@ -94,8 +93,7 @@ namespace GroceryList.Data
         private SqlResourceBuilder GetCheckoutSql(string homeId)
         {
 
-            var sql = new SqlResourceBuilder(map, "Grocery.SelectCurrent");
-            sql.Replace(nameof(homeId), homeId);
+            var sql = new SqlResourceBuilder(map, "Grocery.SelectCurrent", homeId, logger);
             sql.Append("`in_cart_time` = @InCartTime;");
             return sql;
         }
