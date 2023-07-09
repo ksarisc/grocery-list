@@ -1,4 +1,4 @@
-//using Amazon.Runtime.Internal.Util;
+using Dapper;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Text;
@@ -13,6 +13,7 @@ public class SqlResourceBuilder
     private readonly StringBuilder sql;
     private readonly string id;
     private readonly bool isDebug;
+    //private readonly SqlBuilder builder;
 
     public SqlResourceBuilder(IResourceMapper resourceMapper, string name, int homeId, ILogger sqlLogger)
         : this(resourceMapper, name, homeId.ToString(), sqlLogger) { }
@@ -27,7 +28,7 @@ public class SqlResourceBuilder
             var value = map.GetSql(name);
             if (string.IsNullOrWhiteSpace(value))
             {
-                value = value.Replace(homeIdField, homeId.ToString());
+                value = value.Replace(homeIdField, id);
             }
             if (isDebug) logger.LogDebug("New Builder (Home:{homeId}) SQL `{name}` Default: {query}", homeId, name, value);
             sql = CreateBuilder(value);
@@ -77,7 +78,18 @@ public class SqlResourceBuilder
         return this;
     }
 
+    public SqlResourceBuilder ReplaceHome()
+    {
+        sql.Replace(homeIdField, id);
+        return this;
+    }
+
     public SqlResourceBuilder Append(string value)
+    {
+        sql.Append(value);
+        return this;
+    }
+    public SqlResourceBuilder Append(char value)
     {
         sql.Append(value);
         return this;

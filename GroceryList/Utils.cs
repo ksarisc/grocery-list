@@ -1,3 +1,6 @@
+using Humanizer.Configuration;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.Extensions.Configuration;
 using System;
 
 namespace GroceryList
@@ -22,5 +25,23 @@ namespace GroceryList
                 return p == 4 || p == 6 || p == 128;
             }
         }
+
+        public static string GetConnectionWithSecrets(this IConfiguration self, string key)
+        {
+            var temp = self.GetConnectionString(key)
+                .ReplaceSecret(self, "GROCERY_DB_USER")
+                .ReplaceSecret(self, "GROCERY_DB_PASS");
+            return temp;
+        } // END GetConnectionWithSecrets
+
+        public static string ReplaceSecret(this string self, IConfiguration conf, string key)
+        {
+            var toReplace = $"%{key}%";
+            if (!self.Contains(toReplace, StringComparison.Ordinal))
+                return self;
+
+            var secret = conf.GetValue<string>(key);
+            return self.Replace(toReplace, secret ?? string.Empty);
+        } // END ReplaceSecret
     }
 }
