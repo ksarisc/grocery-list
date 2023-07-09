@@ -279,9 +279,13 @@ namespace GroceryList.Data
 
         public Task<bool> HasPasswordAsync(AppUser user, CancellationToken cancellationToken)
         {
-            return Task.FromResult(user.PasswordHash != null);
+            //what about `string.IsNullOrWhiteSpace`?
+            return Task.FromResult(!string.IsNullOrEmpty(user.PasswordHash));
         }
 
-        public void Dispose() { }
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
+        }
     }
 }

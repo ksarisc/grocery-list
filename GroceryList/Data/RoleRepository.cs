@@ -1,16 +1,20 @@
-﻿using GroceryList.Models;
+﻿using Amazon.Runtime.Internal.Util;
+using Amazon.S3.Model;
+using Dapper;
+using GroceryList.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace GroceryList.Data
 {
-    public class RoleRepository : IRoleStore<AppRole>
+    public class RoleRepository : IRoleStore<AppRole>, IDisposable
     {
         private const string lookupFile = "lookup_role_data";
 
@@ -125,6 +129,136 @@ namespace GroceryList.Data
             return await GetAsync(role.Id);
         }
 
-        public void Dispose() { }
+        public void Dispose() { GC.SuppressFinalize(this); }
+    }
+
+    public sealed class DbRoleRepository : IRoleStore<AppRole>, IDisposable
+    {
+        private readonly DbConnection conn;
+        private readonly ILogger<DbRoleRepository> logger;
+
+        public DbRoleRepository(DbProviderFactory providerFactory, IConfiguration configuration, ILogger<DbRoleRepository> userLogger)
+        {
+            logger = userLogger;
+            var connect = configuration.GetConnectionWithSecrets("Main");
+            conn = providerFactory.CreateConnection() ?? throw new NullReferenceException("Main factory generated NO valid connection");
+            conn.ConnectionString = connect;
+        }
+
+        private const string sqlGet = @"";
+        private async Task<AppRole> GetAsync(string? roleId = null, string? normalName = null)
+        {
+            try
+            {
+                var role = await conn.QueryFirstOrDefaultAsync(sqlGet, new { RoleId = roleId, NormalName = normalName, });
+                if (role != null)
+                    return role;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Get Role (ID:{roleId})(Name:{normalName}) ERR", roleId);
+            }
+            //throw new KeyNotFoundException($"Role `{roleId}` NOT Found")
+            return AppRole.Empty;
+        }
+
+        private const string sqlInsert = @"";
+        private const string sqlUpdate = @"";
+        public async Task<IdentityResult> CreateAsync(AppRole role, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            try
+            {
+                var result = await conn.ExecuteAsync(sqlInsert, role);
+                return IdentityResult.Success;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Create Role ERR ({@role})", role);
+            }
+            return IdentityResult.Failed(new IdentityError { Description = $"Unable to create Role: {role.Name}" });
+        } // END CreateAsync
+
+        public async Task<IdentityResult> UpdateAsync(AppRole role, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            //// ID value MUST be set
+            //if (string.IsNullOrWhiteSpace(role.Id)){
+            //    role.Id = Utils.GetNewUuid();
+            //}
+
+            try
+            {
+                var result = await conn.ExecuteAsync(sqlUpdate, role);
+                return IdentityResult.Success;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Update Role ERR ({@role})", role);
+            }
+            return IdentityResult.Failed(new IdentityError { Description = $"Unable to update Role: {role.Name}" });
+        } // END UpdateAsync
+
+        private const string sqlDelete = @"";
+        public async Task<IdentityResult> DeleteAsync(AppRole role, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            try
+            {
+                var result = await conn.ExecuteAsync(sqlDelete, role);
+                return IdentityResult.Success;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Delete Role ERR ({@role})", role);
+            }
+            return IdentityResult.Failed(new IdentityError { Description = $"Unable to delete Role: {role.Name}" });
+        } // END DeleteAsync
+
+        public Task<string> GetRoleIdAsync(AppRole role, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(role.Id.ToString());
+        }
+
+        public Task<string> GetRoleNameAsync(AppRole role, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(role.Name);
+        }
+
+        public Task SetRoleNameAsync(AppRole role, string roleName, CancellationToken cancellationToken)
+        {
+            role.Name = roleName;
+            return Task.FromResult(0);
+        }
+
+        public Task<string> GetNormalizedRoleNameAsync(AppRole role, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(role.NormalizedName);
+        }
+
+        public Task SetNormalizedRoleNameAsync(AppRole role, string normalizedName, CancellationToken cancellationToken)
+        {
+            role.NormalizedName = normalizedName;
+            return Task.FromResult(0);
+        }
+
+        public async Task<AppRole> FindByIdAsync(string roleId, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return await GetAsync(roleId: roleId);
+        }
+
+        public async Task<AppRole> FindByNameAsync(string normalizedRoleName, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return await GetAsync(normalName: normalizedRoleName);
+        }
+
+        public void Dispose() { GC.SuppressFinalize(this); }
     }
 }

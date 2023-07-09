@@ -158,6 +158,6 @@ namespace GroceryList.Data
     //        return await GetAsync(user.Id);
     //    } // END FindByEmailAsync
 
-    //    public void Dispose() { }
+    //    public void Dispose() { GC.SuppressFinalize(this); }
     //}
 }

@@ -1,4 +1,3 @@
-using GroceryList.Data;
 using GroceryList.Models.Config;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -36,13 +35,31 @@ namespace GroceryList
             services.Configure<DataServiceConfig>(Configuration.GetSection("DataService"));
             services.AddSingleton<Data.IUpdateCache, Data.UpdateCache>();
 
-            services.AddScoped<Services.IDataService, Services.DataService>();
-            //services.AddScoped<IUserDataRepository, UserDataRepository>();
             // depending on configuration (file OR database)
-            services.AddScoped<IGroceryRepository, FileGroceryRepository>();
+            if (Configuration.GetValue<bool>("UseMariaDB")) //useMariaDb)
+            {
+                services.AddSingleton<Services.IResourceMapper, Services.ResourceMapper>();
+                services.AddSingleton<System.Data.Common.DbProviderFactory>(MySqlConnector.MySqlConnectorFactory.Instance);
+                services.AddScoped<Services.IDataService, Data.DbDataService>();
+                //var userStoreType = typeof(DbUserRepository<,>).MakeGenericType(builder.UserType, typeof(TDocumentStore));
+                //builder.Services.AddScoped(typeof(IUserStore<>).MakeGenericType(builder.UserType), userStoreType);
+                //services.AddScoped<Microsoft.AspNetCore.Identity.IUserStore<>, Data.DbUserRepository>();
+                //services.AddScoped<Data.DbUserRepository>();
+                //services.AddScoped<Data.DbRoleRepository>();
+                services.AddScoped<Data.IGroceryRepository, Data.DbGroceryRepository>();
+            }
+            else
+            {
+                services.AddScoped<Services.IDataService, Services.FileDataService>();
+                //services.AddScoped<IUserDataRepository, UserDataRepository>();
+                //services.AddScoped<Data.UserRepository>();
+                //services.AddScoped<Data.RoleRepository>();
+                services.AddScoped<Data.IGroceryRepository, Data.FileGroceryRepository>();
+            }
 
             services.AddScoped<Services.HomeRouteFilter>(); // should this be Transient?
 
+            //services.AddDbContext<ApplicationDbContext>(o=> o.UseMySql())
             //services.AddDbContext<ApplicationDbContext>(o => o.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
             //services.AddDatabaseDeveloperPageExceptionFilter();
             //services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true).AddEntityFrameworkStores<ApplicationDbContext>();

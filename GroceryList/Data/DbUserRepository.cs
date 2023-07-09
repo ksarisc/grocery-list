@@ -7,7 +7,10 @@ using System.Threading;
 using System;
 using System.Data.Common;
 using System.Net.Mail;
-using Amazon.Runtime;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using GroceryList.Services;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace GroceryList.Data
 {
@@ -37,15 +40,19 @@ WHERE `is_active` = 1
 SET `is_active` = 0, `modified_at` = @ModifiedTime, `modified_by` = @ModifiedBy
 WHERE `user_id` = @UserId;";
 
-        //private readonly DbProviderFactory provider;
-        private readonly DbConnection conn;
+        private readonly string connect;
+        private readonly DbProviderFactory factory;
+        private readonly ILogger<DbUserRepository> logger;
 
-        public DbUserRepository(DbProviderFactory providerFactory)
+        public DbUserRepository(DbProviderFactory providerFactory, IConfiguration configuration, ILogger<DbUserRepository> userLogger)
         {
-            //provider = providerFactory;
-            conn = providerFactory.CreateConnection();
-            conn.ConnectionString = conf.ConnectionString;
+            factory = providerFactory;
+            //conn = providerFactory.CreateConnection();
+            //conn.ConnectionString = conf.ConnectionString;
+            connect = configuration.GetConnectionWithSecrets("Main");
+            logger = userLogger;
         }
+
         private class GetParams
         {
             public string? UserId { get; set; }
@@ -54,35 +61,19 @@ WHERE `user_id` = @UserId;";
             public bool SearchActiveOnly { get; set; } = false;
         }
 
-        private static string FormatSql(string query, AppUser user)
-        {
-            // handle missing HomeId
-            return string.Format(query, user.HomeId);
-        }
-
-        //private async Task UpdateLookups(AppUserLookup lookup)
+        //private static string FormatSql(string query, AppUser user)
         //{
-        //    // remove lookups when Email & UserName are NULL
-        //    if (lookup.Email == null && lookup.UserName == null)
-        //    {
-        //        list.RemoveAll(l => l.Id.Equals(lookup.Id, StringComparison.Ordinal));
-        //    }
-        //    else
-        //    {
-        //        int i = list.FindIndex(l => l.Id.Equals(lookup.Id, StringComparison.Ordinal));
-        //        if (i != -1)
-        //        {
-        //            list[i].Email = lookup.Email;
-        //            list[i].UserName = lookup.UserName;
-        //        }
-        //        else
-        //        {
-        //            list.Add(lookup);
-        //        }
-        //    }
+        //    // handle missing HomeId
+        //    return string.Format(query, user.HomeId);
+        //}
+        private DbConnection GetConnection()
+        {
+            var conn = factory.CreateConnection();
+            if (conn == null) throw new NullReferenceException("DbProvider could NOT generate connection!");
 
-        //    await fileService.SetAsync(folder, lookupFile, list);
-        //} // END UpdateLookups
+            conn.ConnectionString = connect;
+            return conn;
+        }
 
         public Task<IdentityResult> CreateAsync(AppUser user, CancellationToken cancellationToken)
         {
@@ -93,6 +84,8 @@ WHERE `user_id` = @UserId;";
         {
             bool changedEmail = false, changedName = false;
             cancellationToken.ThrowIfCancellationRequested();
+
+            // check if user exists by Id (if exists), Name(s), & Email/Other
 
             // ID value MUST be set, why not throw if not set rather than create a new user?
             if (string.IsNullOrWhiteSpace(user.Id))
@@ -122,20 +115,25 @@ WHERE `user_id` = @UserId;";
             }
             dataUser.EditedTime = DateTimeOffset.UtcNow;
 
-            await fileService.SetAsync(folder, user.Id, dataUser);
+            //await fileService.SetAsync(folder, user.Id, dataUser);
 
-            // update the lookups
-            if (changedEmail || changedName)
+            //// update the lookups
+            //if (changedEmail || changedName)
+            //{
+            //    await UpdateLookups(new AppUserLookup
+            //    {
+            //        Id = dataUser.Id,
+            //        Email = dataUser.NormalizedEmail,
+            //        UserName = dataUser.NormalizedUserName,
+            //    });
+            //}
+            using (var conn = GetConnection())
             {
-                await UpdateLookups(new AppUserLookup
-                {
-                    Id = dataUser.Id,
-                    Email = dataUser.NormalizedEmail,
-                    UserName = dataUser.NormalizedUserName,
-                });
+                var count = await conn.ExecuteAsync(sqlSet, user);
+                if (count > 0)
+                    return IdentityResult.Success;
             }
-
-            return IdentityResult.Success;
+            return IdentityResult.Failed(new IdentityError { Description = "Could NOT edit user" });
         } // END UpdateAsync
 
         public async Task<IdentityResult> DeleteAsync(AppUser user, CancellationToken cancellationToken)
@@ -143,18 +141,25 @@ WHERE `user_id` = @UserId;";
             cancellationToken.ThrowIfCancellationRequested();
 
             // handle missing HomeId
-            var sql = FormatSql(sqlDelete, user);
-            var result = await conn.ExecuteAsync(sql, new { UserId = user.Id });
-            return result == 1 ?
-                IdentityResult.Success :
-                IdentityResult.Failed(new IdentityError { Code = "DefaultError", Description = $"ID `{user.Id}` NOT Found!" });
+            var sql = string.Format(sqlDelete, user.HomeId);
+            try
+            {
+                var conn = GetConnection();
+                var result = await conn.ExecuteAsync(sql, new { UserId = user.Id });
+                return result == 1 ?
+                    IdentityResult.Success :
+                    IdentityResult.Failed(new IdentityError { Code = "DefaultError", Description = $"ID `{user.Id}` NOT Found!" });
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "", user);
+            }
+            return IdentityResult.Failed(new IdentityError { Description = $"ID `{user.Id}` could NOT be deleted!" });
         }
 
         private async Task<AppUser> GetAsync(GetParams parms) //string userId)
         {
-            //if (conn.State != System.Data.ConnectionState.Open)
-            //    await conn.OpenAsync();
-
+            var conn = GetConnection();
             var user = await conn.QuerySingleOrDefaultAsync<AppUser>(sqlGet, parms);
             return user ?? AppUser.Empty;
         } // END GetAsync
@@ -227,7 +232,7 @@ WHERE `user_id` = @UserId;";
         public async Task SetEmailConfirmedAsync(AppUser user, bool confirmed, CancellationToken cancellationToken)
         {
             user.EmailConfirmed = confirmed;
-            await UpdateAsync(user);
+            await UpdateAsync(user, cancellationToken);
             //return Task.FromResult(0);
         }
 
@@ -236,18 +241,16 @@ WHERE `user_id` = @UserId;";
             return Task.FromResult(user.NormalizedEmail);
         }
 
-        public Task SetNormalizedEmailAsync(AppUser user, string normalizedEmail, CancellationToken cancellationToken)
+        public async Task SetNormalizedEmailAsync(AppUser user, string normalizedEmail, CancellationToken cancellationToken)
         {
             user.NormalizedEmail = normalizedEmail;
-            await UpdateAsync(user);
-            //return Task.FromResult(0);
+            await UpdateAsync(user, cancellationToken);
         }
 
-        public Task SetPhoneNumberAsync(AppUser user, string phoneNumber, CancellationToken cancellationToken)
+        public async Task SetPhoneNumberAsync(AppUser user, string phoneNumber, CancellationToken cancellationToken)
         {
             user.PhoneNumber = phoneNumber;
-            await UpdateAsync(user);
-            //return Task.FromResult(0);
+            await UpdateAsync(user, cancellationToken);
         }
 
         public Task<string> GetPhoneNumberAsync(AppUser user, CancellationToken cancellationToken)
@@ -262,16 +265,15 @@ WHERE `user_id` = @UserId;";
 
         public Task SetPhoneNumberConfirmedAsync(AppUser user, bool confirmed, CancellationToken cancellationToken)
         {
-            user.PhoneNumberConfirmed = confirmed;
-            await UpdateAsync(user);
-            //return Task.FromResult(0);
+            //user.PhoneNumberConfirmed = confirmed;
+            //await UpdateAsync(user, cancellationToken);
+            return Task.FromResult(0);
         }
 
-        public Task SetTwoFactorEnabledAsync(AppUser user, bool enabled, CancellationToken cancellationToken)
+        public async Task SetTwoFactorEnabledAsync(AppUser user, bool enabled, CancellationToken cancellationToken)
         {
             user.TwoFactorEnabled = enabled;
-            await UpdateAsync(user);
-            //return Task.FromResult(0);
+            await UpdateAsync(user, cancellationToken);
         }
 
         public Task<bool> GetTwoFactorEnabledAsync(AppUser user, CancellationToken cancellationToken)
@@ -279,11 +281,10 @@ WHERE `user_id` = @UserId;";
             return Task.FromResult(user.TwoFactorEnabled);
         }
 
-        public Task SetPasswordHashAsync(AppUser user, string passwordHash, CancellationToken cancellationToken)
+        public async Task SetPasswordHashAsync(AppUser user, string passwordHash, CancellationToken cancellationToken)
         {
             user.PasswordHash = passwordHash;
-            await UpdateAsync(user);
-            //return Task.FromResult(0);
+            await UpdateAsync(user, cancellationToken);
         }
 
         public Task<string> GetPasswordHashAsync(AppUser user, CancellationToken cancellationToken)
@@ -298,7 +299,8 @@ WHERE `user_id` = @UserId;";
 
         public void Dispose()
         {
-            conn.Dispose();
+            //conn.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 }

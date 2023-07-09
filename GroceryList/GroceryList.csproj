@@ -19,6 +19,7 @@
     <None Remove="Resources\Grocery\CreateHome.sql" />
     <None Remove="Resources\Grocery\DeleteCurrent.sql" />
     <None Remove="Resources\Grocery\SelectCurrent.sql" />
+    <None Remove="Resources\Grocery\SelectTrips.sql" />
   </ItemGroup>
 
   <ItemGroup>
@@ -44,6 +45,7 @@
     <EmbeddedResource Include="Resources\Grocery\CreateHome.sql" />
     <EmbeddedResource Include="Resources\Grocery\DeleteCurrent.sql" />
     <EmbeddedResource Include="Resources\Grocery\SelectCurrent.sql" />
+    <EmbeddedResource Include="Resources\Grocery\SelectTrips.sql" />
   </ItemGroup>
 
   <ItemGroup>

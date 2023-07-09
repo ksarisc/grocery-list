@@ -25,5 +25,4 @@ BEGIN
 END;
 
 -- SELECT RESOURCE FILE WILL BE INSERTED HERE INSTEAD
-{{SelectQuery}}
-WHERE `item_id` = @Id;
+{{SelectQuery}} `item_id` = @Id;

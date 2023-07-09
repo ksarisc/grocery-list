@@ -27,15 +27,15 @@ namespace GroceryList.Services
         public Task<List<Models.DataRequestInfo>> ListAsync(Models.DataRequest request, int maxResults = 0);
     }
 
-    public class DataService : IDataService
+    public class FileDataService : IDataService
     {
         private const string fileSearch = "*.json";
         private const string homeFile = "home.json";
         private const int bufferSize = 8192;
         private readonly string dataPath;
-        private readonly ILogger<DataService> logger;
+        private readonly ILogger<FileDataService> logger;
 
-        public DataService(ILogger<DataService> dataLogger, IOptions<DataServiceConfig> options)
+        public FileDataService(ILogger<FileDataService> dataLogger, IOptions<DataServiceConfig> options)
         {
             logger = dataLogger;
             // need to be able to define the base (for different types of data)
@@ -222,7 +222,7 @@ namespace GroceryList.Services
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-        ~DataService()
+        ~FileDataService()
         {
             Dispose(false);
         }
