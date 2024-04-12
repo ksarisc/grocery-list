@@ -14,7 +14,6 @@ namespace GroceryList
 {
     // Test Home ID: c254f50f-10b5-4f89-af7a-bab17fe78c45
     // https://localhost:44380/c254f50f-10b5-4f89-af7a-bab17fe78c45/grocery
-
     public class Startup
     {
         public IConfiguration Configuration { get; }
@@ -46,10 +45,7 @@ namespace GroceryList
 
             //services.AddDbContext<ApplicationDbContext>(o => o.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
             //services.AddDatabaseDeveloperPageExceptionFilter();
-            //services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
-            //    .AddEntityFrameworkStores<ApplicationDbContext>();
-            // services.AddRazorPages();
-            // services.AddMvc();
+            //services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true).AddEntityFrameworkStores<ApplicationDbContext>();
             services.AddSignalR();
 
             //.AddMvc vs .AddControllersWithViews
