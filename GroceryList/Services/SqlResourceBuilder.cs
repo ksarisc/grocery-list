@@ -5,6 +5,7 @@ using System.Text;
 
 namespace GroceryList.Services;
 
+// IDEA: create a single SqlResourceBuilder instance per HomeID (as they are needed) and cache the query strings (could even cache connection strings there too)
 public class SqlResourceBuilder
 {
     private const string homeIdField = "{{homeId}}";

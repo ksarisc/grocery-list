@@ -28,13 +28,13 @@ CREATE TABLE IF NOT EXISTS `{{homeId}}_current_list` (
     `notes` varchar(1000),
     `price` double,
     `qty` INT,
-    `created_at` datetime,
+    `created_on` datetime,
     `created_tz` varchar(40),
     `created_user` varchar(50) NOT NULL,
-    `in_cart_at` datetime,
+    `in_cart_on` datetime,
     `in_cart_tz` varchar(40),
     `in_cart_user` varchar(50),
-    `purchased_at` datetime,
+    `purchased_on` datetime,
     `purchased_tz` varchar(40),
     `purchased_user` varchar(50)
 ) DEFAULT CHARSET=utf8mb4;
@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS `{{homeId}}_current_list` (
 -- create the previous trips table
 CREATE TABLE IF NOT EXISTS `{{homeId}}_previous_trips` (
     `trip_id` BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `checkout_at` datetime,
+    `checkout_on` datetime,
     `checkout_tz` varchar(40),
     `item_list` JSON NOT NULL,
     `store_name` varchar(100),
