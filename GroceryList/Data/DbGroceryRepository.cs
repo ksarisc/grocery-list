@@ -28,6 +28,7 @@ namespace GroceryList.Data
         public DbGroceryRepository(DbProviderFactory dbProviderFactory, IResourceMapper resourceMapper, IConfiguration configuration)
         {
             factory = dbProviderFactory;
+            // TODO: probably should make this less verbose
             connect = configuration.GetConnectionString("GroceriesData");
             map = resourceMapper;
         }
