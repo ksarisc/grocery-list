@@ -2,8 +2,6 @@
 {
     internal static class ResourceUtilities
     {
-        public static string GetSql(string name, string? path = null)
-        {
-        }
+        //public static string GetSql(string name, string? path = null) { }
     }
 }

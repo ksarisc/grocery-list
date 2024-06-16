@@ -38,7 +38,7 @@ namespace GroceryList
             // depending on configuration (file OR database)
             if (Configuration.GetValue<bool>("UseMariaDB")) //useMariaDb)
             {
-                services.AddSingleton<Services.IResourceMapper, Services.ResourceMapper>();
+                services.AddSingleton<Lib.IResourceMapper, Services.ResourceMapper>();
                 services.AddSingleton<System.Data.Common.DbProviderFactory>(MySqlConnector.MySqlConnectorFactory.Instance);
                 services.AddScoped<Services.IDataService, Data.DbDataService>();
                 //var userStoreType = typeof(DbUserRepository<,>).MakeGenericType(builder.UserType, typeof(TDocumentStore));
@@ -46,7 +46,7 @@ namespace GroceryList
                 //services.AddScoped<Microsoft.AspNetCore.Identity.IUserStore<>, Data.DbUserRepository>();
                 //services.AddScoped<Data.DbUserRepository>();
                 //services.AddScoped<Data.DbRoleRepository>();
-                services.AddScoped<Data.IGroceryRepository, Data.DbGroceryRepository>();
+                services.AddScoped<Lib.IGroceryRepository, Db.DbGroceryRepository>();
             }
             else
             {
@@ -54,7 +54,7 @@ namespace GroceryList
                 //services.AddScoped<IUserDataRepository, UserDataRepository>();
                 //services.AddScoped<Data.UserRepository>();
                 //services.AddScoped<Data.RoleRepository>();
-                services.AddScoped<Data.IGroceryRepository, Data.FileGroceryRepository>();
+                services.AddScoped<Lib.IGroceryRepository, Data.FileGroceryRepository>();
             }
 
             services.AddScoped<Services.HomeRouteFilter>(); // should this be Transient?

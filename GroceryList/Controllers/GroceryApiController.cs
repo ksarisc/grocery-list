@@ -1,4 +1,4 @@
-using GroceryList.Models;
+using GroceryList.Lib.Models;
 using GroceryList.Models.Forms;
 using GroceryList.Services;
 using Microsoft.AspNetCore.Authentication;
@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace GroceryList.Controllers
@@ -19,15 +20,15 @@ namespace GroceryList.Controllers
     {
         private readonly Services.IDataService dataSvc;
         private readonly Data.IUpdateCache cache;
-        private readonly Data.IGroceryRepository repo;
+        private readonly GroceryList.Lib.IGroceryRepository _repo;
         private readonly ILogger<GroceryController> logger;
 
         public GroceryApiController(Services.IDataService dataService, Data.IUpdateCache groceryCache,
-            Data.IGroceryRepository groceryRepository, ILogger<GroceryController> groceryLogger)
+            GroceryList.Lib.IGroceryRepository groceryRepository, ILogger<GroceryController> groceryLogger)
         {
             dataSvc = dataService;
             cache = groceryCache;
-            repo = groceryRepository;
+            _repo = groceryRepository;
             logger = groceryLogger;
             //lastUpdated = DateTime.MinValue; //groceryRepo.GetLastUpdated();
         }
@@ -39,25 +40,25 @@ namespace GroceryList.Controllers
         }
 
         [Route("getcurrent/{homeId}")]
-        public async Task<ApiResult<IEnumerable<GroceryItem>>> GetCurrent(string homeId)
+        public async Task<Models.ApiResult<IEnumerable<GroceryItem>>> GetCurrent(string homeId, CancellationToken cancel)
         {
             // display the current list
             // ?? should this log failures to invalid homeId's ??
             // ?? what should it return in that case ??
             try
             {
-                var model = await repo.GetListAsync(homeId);
-                return new ApiResult<IEnumerable<GroceryItem>>(model);
+                var model = await _repo.GetListAsync(homeId, cancel);
+                return new Models.ApiResult<IEnumerable<GroceryItem>>(model);
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "GetCurrent (Home: {homeId}) ERR", homeId);
             }
-            return new ApiResult<IEnumerable<GroceryItem>>("Unknown error happened");
+            return new Models.ApiResult<IEnumerable<GroceryItem>>("Unknown error happened");
         } // END GetCurrent
 
         [HttpPost("add")]
-        public async Task<ApiResult<GroceryItemForm>> Add([FromBody] GroceryItemForm formModel)
+        public async Task<Models.ApiResult<GroceryItemForm>> Add([FromBody] GroceryItemForm formModel, CancellationToken cancel)
         {
             var userName = User.Identity?.Name ?? string.Empty;
             if (string.IsNullOrWhiteSpace(userName))
@@ -71,7 +72,7 @@ namespace GroceryList.Controllers
                     sb.Append(error.ErrorMessage);
                 }
                 //("Unable to add item: check details below");
-                return new ApiResult<GroceryItemForm>(sb.ToString());
+                return new Models.ApiResult<GroceryItemForm>(sb.ToString());
             }
             if (formModel.HomeId == null)
             {
@@ -88,17 +89,17 @@ namespace GroceryList.Controllers
                     model.InCartUser = userName; //GetUser();
                 }
                 //PurchasedTime,PurchasedUser,
-                var result = await repo.AddAsync(model);
-                if (result == null) return new ApiResult<GroceryItemForm>($"Unable to add {model.Name} to list");
+                var result = await _repo.AddAsync(model, cancel);
+                if (result == null) return new Models.ApiResult<GroceryItemForm>($"Unable to add {model.Name} to list");
 
                 await cache.UpdateAsync("current");
-                return new ApiResult<GroceryItemForm>(result.ToFormModel());
+                return new Models.ApiResult<GroceryItemForm>(result.ToFormModel());
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Add Error: {@formModel}", formModel);
             }
-            return new ApiResult<GroceryItemForm>(formModel, "error in validation");
+            return new Models.ApiResult<GroceryItemForm>(formModel, "error in validation");
         } // END Add
     }
 }

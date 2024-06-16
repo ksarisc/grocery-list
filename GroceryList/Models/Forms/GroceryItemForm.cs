@@ -36,7 +36,7 @@ namespace GroceryList.Models.Forms
 
     public static class GroceryItemFormExtensions
     {
-        public static GroceryItemForm ToFormModel(this GroceryItem self)
+        public static GroceryItemForm ToFormModel(this Lib.Models.GroceryItem self)
         {
             return new GroceryItemForm
             {
@@ -57,7 +57,7 @@ namespace GroceryList.Models.Forms
                 PurchasedUser = self.PurchasedUser,
             };
         }
-        public static GroceryItem ToModel(this GroceryItemForm self, string homeId)
+        public static Lib.Models.GroceryItem ToModel(this GroceryItemForm self, string homeId)
         {
             if (string.IsNullOrWhiteSpace(self.HomeId))
             {
@@ -73,7 +73,7 @@ namespace GroceryList.Models.Forms
                 throw new ArgumentOutOfRangeException(nameof(GroceryItemForm.Name));
             }
 
-            return new GroceryItem
+            return new Lib.Models.GroceryItem
             {
                 Id = self.Id, //?? string.Empty,
                 HomeId = self.HomeId,

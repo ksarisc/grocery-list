@@ -19,13 +19,13 @@ public class DbGroceryRepository : IGroceryRepository
     private readonly IResourceMapper _map;
     private readonly ILogger<DbGroceryRepository> _log;
 
-    public DbGroceryRepository(DbProviderFactory dbProviderFactory, IResourceMapper mapper, IConfiguration configuration, ILogger<DbGroceryRepository> logger)
+    public DbGroceryRepository(DbProviderFactory dbProviderFactory, IResourceMapper mapper, ILogger<DbGroceryRepository> logger)
     {
         _db = dbProviderFactory;
-        // TODO: probably should make this less verbose
-        _connect = configuration.GetConnectionWithSecrets("Groceries"); //GroceriesData
         _map = mapper;
         _log = logger;
+        // TODO: probably should make this less verbose
+        _connect = _map.GetConnectionWithSecrets("Groceries"); //GroceriesData
     }
 
     private DbConnection GetConnection() //string homeId)

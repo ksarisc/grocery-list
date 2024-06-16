@@ -26,6 +26,6 @@ namespace GroceryList.Models.Forms
             }
         }
         public List<string> ItemIds { get; } = new List<string>();
-        public List<GroceryItem>? Items { get; set; }
+        public List<Lib.Models.GroceryItem>? Items { get; set; }
     }
 }

@@ -1,4 +1,4 @@
-﻿using GroceryList.Models;
+﻿using GroceryList.Lib.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 

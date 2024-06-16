@@ -1,4 +1,5 @@
 using GroceryList.Models.Config;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
@@ -17,13 +18,18 @@ namespace GroceryList.Services
         // TODO: shouldn't this be Ordinal?
         private readonly Dictionary<string, string> sqlMap = new(StringComparer.OrdinalIgnoreCase);
         private readonly Assembly me;
+        private readonly IConfiguration _conf;
 
-        public ResourceMapper()
+        public ResourceMapper(IConfiguration configuration)
         {
             me = typeof(ResourceMapper).Assembly;
+            _conf = configuration;
         }
 
-        public Stream? Get(string fileName)
+        public string? GetConnection(string name) => _conf.GetConnectionString(name);
+		public string? GetConnectionWithSecrets(string name) => _conf.GetConnectionWithSecrets(name);
+
+		public Stream? Get(string fileName)
         {
             // check file name / extension
             return me.GetManifestResourceStream($"GroceryList.Resources.{fileName}");
@@ -75,11 +81,31 @@ namespace GroceryList.Services
         } // END GetSqlAsync
 
         public string SetSql(string name, string sql)
-        {
-        }
+		{
+			sqlLocker.Wait();
+			try
+			{
+                sqlMap[name] = sql;
+				return sql;
+			}
+			catch (Exception) { throw; }
+			finally { sqlLocker.Release(); }
+		}
 
-        #region cleanup
-        private void Dispose(bool disposing)
+		public async Task<string> SetSqlAsync(string name, string sql, CancellationToken cancel)
+		{
+			await sqlLocker.WaitAsync(cancel);
+			try
+			{
+				sqlMap[name] = sql;
+				return sql;
+			}
+			catch (Exception) { throw; }
+			finally { sqlLocker.Release(); }
+		}
+
+		#region cleanup
+		private void Dispose(bool disposing)
         {
             if (!disposing) return;
         }
