@@ -1,0 +1,40 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="MySQL\Grocery\AddOrUpdate.sql" />
+    <None Remove="MySQL\Grocery\Checkout.sql" />
+    <None Remove="MySQL\Grocery\CreateHome.sql" />
+    <None Remove="MySQL\Grocery\DeleteCurrent.sql" />
+    <None Remove="MySQL\Grocery\SelectCurrent.sql" />
+    <None Remove="MySQL\Grocery\SelectTrips.sql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="MySQL\Grocery\AddOrUpdate.sql" />
+    <EmbeddedResource Include="MySQL\Grocery\Checkout.sql" />
+    <EmbeddedResource Include="MySQL\Grocery\CreateHome.sql" />
+    <EmbeddedResource Include="MySQL\Grocery\DeleteCurrent.sql" />
+    <EmbeddedResource Include="MySQL\Grocery\SelectCurrent.sql" />
+    <EmbeddedResource Include="MySQL\Grocery\SelectTrips.sql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="SQLite\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Dapper" Version="2.1.35" />
+    <PackageReference Include="MySqlConnector" Version="2.3.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GroceryList.Lib\GroceryList.Lib.csproj" />
+  </ItemGroup>
+
+</Project>

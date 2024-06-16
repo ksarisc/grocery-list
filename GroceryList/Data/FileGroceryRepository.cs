@@ -1,15 +1,16 @@
-﻿using GroceryList.Models;
+﻿using GroceryList.Lib.Models;
 using GroceryList.Models.Forms;
 using GroceryList.Services;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace GroceryList.Data
 {
-    public class FileGroceryRepository : IGroceryRepository
+    public class FileGroceryRepository : GroceryList.Lib.IGroceryRepository
     {
         private const string currentFile = "current_list";
 
@@ -21,17 +22,17 @@ namespace GroceryList.Data
             //context = contextAccessor;
         }
 
-        public async Task<IEnumerable<GroceryItem>> GetListAsync(string homeId)
+        public async Task<IEnumerable<GroceryItem>> GetListAsync(string homeId, CancellationToken cancel)
         {
             // get Home ID & correct current data file
             var list = await fileService.GetAsync<List<GroceryItem>>(homeId, currentFile);
             if (list == null || list.Count == 0) return Array.Empty<GroceryItem>();
 
-            // JACOB: future: sort by `x.Section` as well
+            // IDEA: future: sort by `x.Section` as well
             var sorted = list.OrderBy(x => x.InCartTime != null).ThenBy(x => x.Name).ToList();
             return sorted;
         }
-        public async Task<GroceryItem?> GetItemAsync(string homeId, string itemId)
+        public async Task<GroceryItem?> GetItemAsync(string homeId, string itemId, CancellationToken cancel)
         {
             var list = await fileService.GetAsync<List<GroceryItem>>(homeId, currentFile);
             if (list == null) return null;
@@ -40,7 +41,7 @@ namespace GroceryList.Data
             return list.FirstOrDefault(g => string.Equals(g.Id, itemId, StringComparison.Ordinal));
         }
 
-        public async Task<GroceryItem?> AddAsync(GroceryItem model)
+        public async Task<GroceryItem?> AddAsync(GroceryItem model, CancellationToken cancel)
         {
             if (string.IsNullOrWhiteSpace(model?.HomeId)) return null;
             // validate item
@@ -48,7 +49,7 @@ namespace GroceryList.Data
             // clean fields in model
             //model.Name = model.Name.Trim();
 
-            var list = (await GetListAsync(model.HomeId)).AsList();
+            var list = (await GetListAsync(model.HomeId, cancel)).AsList();
 
             var found = false;
             for (int i = 0; i != list.Count; i++)
@@ -84,13 +85,13 @@ namespace GroceryList.Data
             return model;
         } // END AddAsync
 
-        public async Task<GroceryItem?> DeleteAsync(GroceryItem model)
+        public async Task<GroceryItem?> DeleteAsync(GroceryItem model, CancellationToken cancel)
         {
             // ?? throw ??
             if (string.IsNullOrWhiteSpace(model?.Id)) return null;
             if (string.IsNullOrWhiteSpace(model?.HomeId)) return null;
 
-            var list = (await GetListAsync(model.HomeId)).AsList();
+            var list = (await GetListAsync(model.HomeId, cancel)).AsList();
 
             if (list.Count == 0) throw new ArgumentOutOfRangeException("No List Found");
 
@@ -108,10 +109,10 @@ namespace GroceryList.Data
             return model;
         } // END DeleteAsync
 
-        public async Task<IEnumerable<GroceryItem>> GetCheckoutAsync(string homeId)
+        public async Task<IEnumerable<GroceryItem>> GetCheckoutAsync(string homeId, CancellationToken cancel)
         {
             // get the list of items in cart
-            var list = await GetListAsync(homeId);
+            var list = await GetListAsync(homeId, cancel);
             return list.Where(g => g.InCartTime != null).ToList();
         }
         //public async Task<IEnumerable<GroceryItem>> CheckoutAsync(string homeId){
@@ -143,10 +144,10 @@ namespace GroceryList.Data
         //    // return the trip items
         //    return inCart;
         //} // END CheckoutAsync
-        public async Task<IEnumerable<GroceryItem>> CheckoutAsync(string homeId, List<string> checkoutItemIds, string? storeName)
+        public async Task<IEnumerable<GroceryItem>> CheckoutAsync(string homeId, List<string> checkoutItemIds, string? storeName, CancellationToken cancel)
         {
             // get the list of items in cart
-            var list = (await GetListAsync(homeId)).AsList();
+            var list = (await GetListAsync(homeId, cancel)).AsList();
             var origList = list.ToArray();
             var inCart = new List<GroceryItem>();
             checkoutItemIds.ForEach(g =>
@@ -164,13 +165,13 @@ namespace GroceryList.Data
             try
             {
                 if (storeName == null) storeName = "NA";
-                var tripData = new GroceryTripData
+                var tripData = new GroceryList.Models.GroceryTripData
                 {
                     StoreName = storeName,
                     Items = inCart.ToArray(),
                 };
 
-                var tripRqst = new DataRequest
+                var tripRqst = new GroceryList.Models.DataRequest
                 {
                     HomeId = homeId,
                     StoreName = currentFile, //$"{DateTime.UtcNow:yyyyMMdd_HHmmss}_{storeName}",
@@ -189,9 +190,10 @@ namespace GroceryList.Data
             return inCart;
         } // END CheckoutAsync
 
-        public async Task<IEnumerable<GroceryTrip>> GetTripsAsync(string homeId)
+        public async Task<IEnumerable<GroceryTrip>> GetTripsAsync(string homeId, CancellationToken cancel)
         {
-            var tripRqst = new DataRequest{
+            var tripRqst = new GroceryList.Models.DataRequest
+            {
                     HomeId = homeId,
                     StoreName = currentFile,
                     ActionName = "trip",

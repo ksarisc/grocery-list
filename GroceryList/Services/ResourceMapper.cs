@@ -11,16 +11,10 @@ using System.Threading.Tasks;
 
 namespace GroceryList.Services
 {
-    public interface IResourceMapper : IDisposable
-    {
-        public Stream? this[string fileName] => Get(fileName);
-        public Stream? Get(string fileName);
-        public string GetSql(string name);
-        public Task<string> GetSqlAsync(string name);
-    }
-    public sealed class ResourceMapper : IResourceMapper
+    public sealed class ResourceMapper : GroceryList.Lib.IResourceMapper
     {
         private readonly SemaphoreSlim sqlLocker = new(1, 1);
+        // TODO: shouldn't this be Ordinal?
         private readonly Dictionary<string, string> sqlMap = new(StringComparer.OrdinalIgnoreCase);
         private readonly Assembly me;
 
@@ -79,6 +73,10 @@ namespace GroceryList.Services
             catch (Exception) { throw; }
             finally { sqlLocker.Release(); }
         } // END GetSqlAsync
+
+        public string SetSql(string name, string sql)
+        {
+        }
 
         #region cleanup
         private void Dispose(bool disposing)
