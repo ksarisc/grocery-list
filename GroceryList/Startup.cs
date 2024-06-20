@@ -35,7 +35,7 @@ namespace GroceryList
             services.Configure<DataServiceConfig>(Configuration.GetSection("DataService"));
             services.AddSingleton<Data.IUpdateCache, Data.UpdateCache>();
 
-            // depending on configuration (file OR database)
+            // depending on configuration (file {file should probably be SQLite instead of JSON} OR database)
             if (Configuration.GetValue<bool>("UseMariaDB")) //useMariaDb)
             {
                 services.AddSingleton<Lib.IResourceMapper, Services.ResourceMapper>();
@@ -46,7 +46,7 @@ namespace GroceryList
                 //services.AddScoped<Microsoft.AspNetCore.Identity.IUserStore<>, Data.DbUserRepository>();
                 //services.AddScoped<Data.DbUserRepository>();
                 //services.AddScoped<Data.DbRoleRepository>();
-                services.AddScoped<Lib.IGroceryRepository, Db.DbGroceryRepository>();
+                services.AddScoped<Lib.IGroceryRepository, Db.GroceryDbRepository>();
             }
             else
             {

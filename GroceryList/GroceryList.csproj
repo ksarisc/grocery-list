@@ -8,12 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Data\Sql\DB_Setup.sql" />
-    <None Remove="Data\Sql\Home_Create.sql" />
-    <None Remove="Data\Sql\Item_Get.sql" />
-    <None Remove="Data\Sql\List_Get.sql" />
-    <None Remove="Data\Sql\PreviousTrips_Get.sql" />
-    <None Remove="Data\Sql\PreviousTrip_Get.sql" />
     <None Remove="Resources\Grocery\AddOrUpdate.sql" />
     <None Remove="Resources\Grocery\Checkout.sql" />
     <None Remove="Resources\Grocery\CreateHome.sql" />
@@ -39,10 +33,6 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Resources\DB_Setup.sql" />
-    <EmbeddedResource Include="Data\Sql\Item_Get.sql" />
-    <EmbeddedResource Include="Data\Sql\List_Get.sql" />
-    <EmbeddedResource Include="Data\Sql\PreviousTrips_Get.sql" />
-    <EmbeddedResource Include="Data\Sql\PreviousTrip_Get.sql" />
     <EmbeddedResource Include="Resources\Grocery\AddOrUpdate.sql" />
     <EmbeddedResource Include="Resources\Grocery\Checkout.sql" />
     <EmbeddedResource Include="Resources\Grocery\CreateHome.sql" />
@@ -53,10 +43,6 @@
 
   <ItemGroup>
     <Folder Include="wwwroot\images\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="Data\Sql\Home_Create.sql" />
   </ItemGroup>
 
   <ItemGroup>

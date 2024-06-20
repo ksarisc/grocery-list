@@ -28,10 +28,10 @@ namespace GroceryList
 
         public static string GetConnectionWithSecrets(this IConfiguration self, string key)
         {
-            var temp = self.GetConnectionString(key)
-                .ReplaceSecret(self, "GROCERY_DB_USER")
-                .ReplaceSecret(self, "GROCERY_DB_PASS");
-            return temp;
+            var temp = self.GetConnectionString(key);
+            if (temp == null) throw new ArgumentNullException(nameof(key), $"`{key}` configuration MISSING");
+
+            return temp.ReplaceSecret(self, "GROCERY_DB_USER").ReplaceSecret(self, "GROCERY_DB_PASS");
         } // END GetConnectionWithSecrets
 
         public static string ReplaceSecret(this string self, IConfiguration conf, string key)
@@ -41,6 +41,12 @@ namespace GroceryList
                 return self;
 
             var secret = conf.GetValue<string>(key);
+#if DEBUG
+            if (System.Diagnostics.Debugger.IsAttached && key.Contains("USER", StringComparison.OrdinalIgnoreCase))
+            {
+                System.Diagnostics.Debug.WriteLine($"Secret `{key}` replaced by `{secret}`");
+            }
+#endif
             return self.Replace(toReplace, secret ?? string.Empty);
         } // END ReplaceSecret
     }

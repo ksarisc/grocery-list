@@ -21,7 +21,7 @@ namespace GroceryList.Controllers
     [Route(HomeRouteFilter.Route)]
     public class GroceryController : Controller
     {
-        private readonly IDataService dataSvc;
+        private readonly IDataService _data;
         private readonly Lib.IGroceryRepository _repo;
         private readonly ILogger<GroceryController> _log;
 
@@ -35,7 +35,7 @@ namespace GroceryList.Controllers
 
         public GroceryController(IDataService dataService, Lib.IGroceryRepository groceryRepository, ILogger<GroceryController> groceryLogger)
         {
-            dataSvc = dataService;
+            _data = dataService;
             _repo = groceryRepository;
             _log = groceryLogger;
         }
@@ -53,7 +53,7 @@ namespace GroceryList.Controllers
             // should each page check that the cookie matches the route? sounds like auth?
             try
             {
-                var home = await dataSvc.GetHomeAsync(homeId);
+                var home = await _data.GetHomeAsync(homeId);
                 if (home != null) HttpContext.SetHome(home.Id, home.Title);
                 else HttpContext.SetHome(homeId, string.Empty);
             }

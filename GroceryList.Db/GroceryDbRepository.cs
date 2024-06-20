@@ -12,14 +12,14 @@ using System.Threading.Tasks;
 
 namespace GroceryList.Db;
 
-public class DbGroceryRepository : IGroceryRepository
+public class GroceryDbRepository : IGroceryRepository
 {
     private readonly string _connect;
     private readonly DbProviderFactory _db;
     private readonly IResourceMapper _map;
-    private readonly ILogger<DbGroceryRepository> _log;
+    private readonly ILogger<GroceryDbRepository> _log;
 
-    public DbGroceryRepository(DbProviderFactory dbProviderFactory, IResourceMapper mapper, ILogger<DbGroceryRepository> logger)
+    public GroceryDbRepository(DbProviderFactory dbProviderFactory, IResourceMapper mapper, ILogger<GroceryDbRepository> logger)
     {
         _db = dbProviderFactory;
         _map = mapper;

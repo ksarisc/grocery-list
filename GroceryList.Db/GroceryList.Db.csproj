@@ -7,6 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="MySQL\Global\CreateGlobal.sql" />
+    <None Remove="MySQL\Global\SelectHome.sql" />
     <None Remove="MySQL\Grocery\AddOrUpdate.sql" />
     <None Remove="MySQL\Grocery\Checkout.sql" />
     <None Remove="MySQL\Grocery\CreateHome.sql" />
@@ -16,6 +18,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="MySQL\Global\CreateGlobal.sql" />
+    <EmbeddedResource Include="MySQL\Global\SelectHome.sql" />
     <EmbeddedResource Include="MySQL\Grocery\AddOrUpdate.sql" />
     <EmbeddedResource Include="MySQL\Grocery\Checkout.sql" />
     <EmbeddedResource Include="MySQL\Grocery\CreateHome.sql" />
