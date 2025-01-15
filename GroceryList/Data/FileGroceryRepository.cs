@@ -97,6 +97,8 @@ namespace GroceryList.Data
 
             list.RemoveAll(g =>
             {
+                if (g.Id == null) return false;
+
                 if (g.Id.Equals(model.Id, StringComparison.Ordinal))
                 {
                     model = g;
@@ -153,7 +155,7 @@ namespace GroceryList.Data
             checkoutItemIds.ForEach(g =>
             {
                 // add item from current to in cart
-                var index = list.FindIndex(gl => gl.Id.Equals(g, StringComparison.Ordinal));
+                var index = list.FindIndex(gl => string.Equals(gl.Id, g, StringComparison.Ordinal));
                 inCart.Add(list[index]);
                 list.RemoveAt(index);
             });

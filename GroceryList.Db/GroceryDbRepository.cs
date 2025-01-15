@@ -25,7 +25,12 @@ public class GroceryDbRepository : IGroceryRepository
         _map = mapper;
         _log = logger;
         // TODO: probably should make this less verbose
-        _connect = _map.GetConnectionWithSecrets("Groceries"); //GroceriesData
+        var connect = _map.GetConnectionWithSecrets("Groceries"); //GroceriesData
+        if (string.IsNullOrWhiteSpace(connect))
+        {
+            throw new ArgumentNullException(nameof(connect));
+        }
+        _connect = connect;
     }
 
     private DbConnection GetConnection() //string homeId)

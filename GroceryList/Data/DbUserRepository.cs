@@ -82,7 +82,7 @@ WHERE `user_id` = @UserId;";
 
         public async Task<IdentityResult> UpdateAsync(AppUser user, CancellationToken cancellationToken)
         {
-            bool changedEmail = false, changedName = false;
+            //bool changedEmail = false, changedName = false;
             cancellationToken.ThrowIfCancellationRequested();
 
             // check if user exists by Id (if exists), Name(s), & Email/Other
@@ -152,19 +152,19 @@ WHERE `user_id` = @UserId;";
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "", user);
+                logger.LogError(ex, "User.Delete `{@user}`", user);
             }
             return IdentityResult.Failed(new IdentityError { Description = $"ID `{user.Id}` could NOT be deleted!" });
         }
 
-        private async Task<AppUser> GetAsync(GetParams parms) //string userId)
+        private async Task<AppUser?> GetAsync(GetParams parms) //string userId)
         {
             var conn = GetConnection();
             var user = await conn.QuerySingleOrDefaultAsync<AppUser>(sqlGet, parms);
             return user ?? AppUser.Empty;
         } // END GetAsync
 
-        public async Task<AppUser> FindByIdAsync(string userId, CancellationToken cancellationToken)
+        public async Task<AppUser?> FindByIdAsync(string userId, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             return await GetAsync(new GetParams { UserId = userId });
@@ -172,23 +172,23 @@ WHERE `user_id` = @UserId;";
 
         // this is a problem, as you have to search a bunch of files
         // probably need to create some lookup files for these
-        public async Task<AppUser> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken)
+        public async Task<AppUser?> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             return await GetAsync(new GetParams { UserName = normalizedUserName });
         } // END FindByNameAsync
 
-        public async Task<AppUser> FindByEmailAsync(string normalizedEmail, CancellationToken cancellationToken)
+        public async Task<AppUser?> FindByEmailAsync(string normalizedEmail, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             return await GetAsync(new GetParams { Email = normalizedEmail });
         } // END FindByEmailAsync
 
-        public Task<string> GetNormalizedUserNameAsync(AppUser user, CancellationToken cancellationToken)
+        public Task<string?> GetNormalizedUserNameAsync(AppUser user, CancellationToken cancellationToken)
         {
-            return Task.FromResult(user.NormalizedUserName);
+            return Task.FromResult<string?>(user.NormalizedUserName);
         }
 
         public Task<string> GetUserIdAsync(AppUser user, CancellationToken cancellationToken)
@@ -196,32 +196,32 @@ WHERE `user_id` = @UserId;";
             return Task.FromResult(user.Id.ToString());
         }
 
-        public Task<string> GetUserNameAsync(AppUser user, CancellationToken cancellationToken)
+        public Task<string?> GetUserNameAsync(AppUser user, CancellationToken cancellationToken)
         {
-            return Task.FromResult(user.UserName);
+            return Task.FromResult<string?>(user.UserName);
         }
 
-        public Task SetNormalizedUserNameAsync(AppUser user, string normalizedName, CancellationToken cancellationToken)
+        public Task SetNormalizedUserNameAsync(AppUser user, string? normalizedName, CancellationToken cancellationToken)
         {
-            user.NormalizedUserName = normalizedName;
-            return Task.FromResult(0);
+            user.NormalizedUserName = normalizedName ?? string.Empty;
+            return Task.CompletedTask;
         }
 
-        public Task SetUserNameAsync(AppUser user, string userName, CancellationToken cancellationToken)
+        public Task SetUserNameAsync(AppUser user, string? userName, CancellationToken cancellationToken)
         {
-            user.UserName = userName;
-            return Task.FromResult(0);
+            user.UserName = userName ?? string.Empty;
+            return Task.CompletedTask;
         }
 
-        public Task SetEmailAsync(AppUser user, string email, CancellationToken cancellationToken)
+        public Task SetEmailAsync(AppUser user, string? email, CancellationToken cancellationToken)
         {
-            user.Email = email;
-            return Task.FromResult(0);
+            user.Email = email ?? string.Empty;
+            return Task.CompletedTask;
         }
 
-        public Task<string> GetEmailAsync(AppUser user, CancellationToken cancellationToken)
+        public Task<string?> GetEmailAsync(AppUser user, CancellationToken cancellationToken)
         {
-            return Task.FromResult(user.Email);
+            return Task.FromResult<string?>(user.Email);
         }
 
         public Task<bool> GetEmailConfirmedAsync(AppUser user, CancellationToken cancellationToken)
@@ -236,26 +236,26 @@ WHERE `user_id` = @UserId;";
             //return Task.FromResult(0);
         }
 
-        public Task<string> GetNormalizedEmailAsync(AppUser user, CancellationToken cancellationToken)
+        public Task<string?> GetNormalizedEmailAsync(AppUser user, CancellationToken cancellationToken)
         {
-            return Task.FromResult(user.NormalizedEmail);
+            return Task.FromResult<string?>(user.NormalizedEmail);
         }
 
-        public async Task SetNormalizedEmailAsync(AppUser user, string normalizedEmail, CancellationToken cancellationToken)
+        public async Task SetNormalizedEmailAsync(AppUser user, string? normalizedEmail, CancellationToken cancellationToken)
         {
-            user.NormalizedEmail = normalizedEmail;
+            user.NormalizedEmail = normalizedEmail ?? string.Empty;
             await UpdateAsync(user, cancellationToken);
         }
 
-        public async Task SetPhoneNumberAsync(AppUser user, string phoneNumber, CancellationToken cancellationToken)
+        public async Task SetPhoneNumberAsync(AppUser user, string? phoneNumber, CancellationToken cancellationToken)
         {
-            user.PhoneNumber = phoneNumber;
+            user.PhoneNumber = phoneNumber ?? string.Empty;
             await UpdateAsync(user, cancellationToken);
         }
 
-        public Task<string> GetPhoneNumberAsync(AppUser user, CancellationToken cancellationToken)
+        public Task<string?> GetPhoneNumberAsync(AppUser user, CancellationToken cancellationToken)
         {
-            return Task.FromResult(user.PhoneNumber);
+            return Task.FromResult<string?>(user.PhoneNumber);
         }
 
         public Task<bool> GetPhoneNumberConfirmedAsync(AppUser user, CancellationToken cancellationToken)
@@ -267,7 +267,7 @@ WHERE `user_id` = @UserId;";
         {
             //user.PhoneNumberConfirmed = confirmed;
             //await UpdateAsync(user, cancellationToken);
-            return Task.FromResult(0);
+            return Task.CompletedTask;
         }
 
         public async Task SetTwoFactorEnabledAsync(AppUser user, bool enabled, CancellationToken cancellationToken)
@@ -281,15 +281,15 @@ WHERE `user_id` = @UserId;";
             return Task.FromResult(user.TwoFactorEnabled);
         }
 
-        public async Task SetPasswordHashAsync(AppUser user, string passwordHash, CancellationToken cancellationToken)
+        public async Task SetPasswordHashAsync(AppUser user, string? passwordHash, CancellationToken cancellationToken)
         {
-            user.PasswordHash = passwordHash;
+            user.PasswordHash = passwordHash ?? string.Empty;
             await UpdateAsync(user, cancellationToken);
         }
 
-        public Task<string> GetPasswordHashAsync(AppUser user, CancellationToken cancellationToken)
+        public Task<string?> GetPasswordHashAsync(AppUser user, CancellationToken cancellationToken)
         {
-            return Task.FromResult(user.PasswordHash);
+            return Task.FromResult<string?>(user.PasswordHash);
         }
 
         public Task<bool> HasPasswordAsync(AppUser user, CancellationToken cancellationToken)

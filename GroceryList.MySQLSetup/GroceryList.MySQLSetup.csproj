@@ -8,7 +8,17 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="SQL\" />
+    <None Remove="SQL\home.sql" />
+    <None Remove="SQL\user.sql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="SQL\home.sql" />
+    <EmbeddedResource Include="SQL\user.sql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Ulid" Version="1.3.4" />
   </ItemGroup>
 
 </Project>

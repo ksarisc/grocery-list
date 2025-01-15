@@ -16,23 +16,28 @@ namespace GroceryList.Data
 {
     public class RoleRepository : IRoleStore<AppRole>, IDisposable
     {
-        private const string lookupFile = "lookup_role_data";
+        private const string _lookupFile = "lookup_role_data";
 
-        private readonly Services.IDataService fileService;
-        private readonly ILogger<RoleRepository> logger;
+        private readonly Services.IDataService _data;
+        private readonly ILogger<RoleRepository> _log;
 
-        private readonly string folder;
+        private readonly string _folder;
 
         public RoleRepository(Services.IDataService dataService, ILogger<RoleRepository> roleLogger, IConfiguration configuration)
         {
-            fileService = dataService;
-            logger = roleLogger;
-            folder = configuration.GetValue<string>("Role::BasePath");
+            _data = dataService;
+            _log = roleLogger;
+            var folder = configuration.GetValue<string>("Role::BasePath");
+            if (string.IsNullOrWhiteSpace(folder))
+            {
+                throw new ArgumentNullException(nameof(folder), "Role.BasePath configuration MISSING");
+            }
+            _folder = folder;
         }
 
         private async Task<AppRole> GetAsync(string roleId)
         {
-            var role = await fileService.GetAsync<AppRole>(folder, roleId);
+            var role = await _data.GetAsync<AppRole>(_folder, roleId);
             return role ?? AppRole.Empty;
         }
 
@@ -66,7 +71,7 @@ namespace GroceryList.Data
             }
             dataRole.EditedTime = DateTimeOffset.UtcNow;
 
-            await fileService.SetAsync(folder, role.Id, dataRole);
+            await _data.SetAsync(_folder, role.Id, dataRole);
 
             return IdentityResult.Success;
         } // END UpdateAsync
@@ -77,7 +82,7 @@ namespace GroceryList.Data
 
             var dataRole = await GetAsync(role.Id);
             // back it up & delete
-            await fileService.SetAsync(folder, role.Id, null);
+            await _data.SetAsync(_folder, role.Id, null);
 
             return IdentityResult.Success;
         }
@@ -87,41 +92,41 @@ namespace GroceryList.Data
             return Task.FromResult(role.Id.ToString());
         }
 
-        public Task<string> GetRoleNameAsync(AppRole role, CancellationToken cancellationToken)
+        public Task<string?> GetRoleNameAsync(AppRole role, CancellationToken cancellationToken)
         {
-            return Task.FromResult(role.Name);
+            return Task.FromResult<string?>(role.Name);
         }
 
-        public Task SetRoleNameAsync(AppRole role, string roleName, CancellationToken cancellationToken)
+        public Task SetRoleNameAsync(AppRole role, string? roleName, CancellationToken cancellationToken)
         {
-            role.Name = roleName;
-            return Task.FromResult(0);
+            role.Name = roleName ?? string.Empty;
+            return Task.CompletedTask; //Task.FromResult(0);
         }
 
-        public Task<string> GetNormalizedRoleNameAsync(AppRole role, CancellationToken cancellationToken)
+        public Task<string?> GetNormalizedRoleNameAsync(AppRole role, CancellationToken cancellationToken)
         {
-            return Task.FromResult(role.NormalizedName);
+            return Task.FromResult<string?>(role.NormalizedName);
         }
 
-        public Task SetNormalizedRoleNameAsync(AppRole role, string normalizedName, CancellationToken cancellationToken)
+        public Task SetNormalizedRoleNameAsync(AppRole role, string? normalizedName, CancellationToken cancellationToken)
         {
             role.NormalizedName = normalizedName;
-            return Task.FromResult(0);
+            return Task.CompletedTask;
         }
 
-        public async Task<AppRole> FindByIdAsync(string roleId, CancellationToken cancellationToken)
+        public async Task<AppRole?> FindByIdAsync(string roleId, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             return await GetAsync(roleId);
         }
 
-        public async Task<AppRole> FindByNameAsync(string normalizedRoleName, CancellationToken cancellationToken)
+        public async Task<AppRole?> FindByNameAsync(string normalizedRoleName, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             // find role's ID via lookup
-            var list = await fileService.GetAsync<AppRoleLookup[]>(folder, lookupFile);
+            var list = await _data.GetAsync<AppRoleLookup[]>(_folder, _lookupFile);
             var role = list?.FirstOrDefault(u => u.Name.Equals(normalizedRoleName, StringComparison.OrdinalIgnoreCase));
 
             if (role == null || string.IsNullOrEmpty(role.Id)) return AppRole.Empty;
@@ -156,14 +161,14 @@ namespace GroceryList.Data
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Get Role (ID:{roleId})(Name:{normalName}) ERR", roleId);
+                logger.LogError(ex, "Get Role (ID:{roleId})(Name:{normalName}) ERR", roleId, normalName);
             }
             //throw new KeyNotFoundException($"Role `{roleId}` NOT Found")
             return AppRole.Empty;
         }
 
-        private const string sqlInsert = @"";
-        private const string sqlUpdate = @"";
+        private const string sqlInsert = @"INSERT INTO app";
+        private const string sqlUpdate = @"UPDATE app";
         public async Task<IdentityResult> CreateAsync(AppRole role, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -223,36 +228,36 @@ namespace GroceryList.Data
             return Task.FromResult(role.Id.ToString());
         }
 
-        public Task<string> GetRoleNameAsync(AppRole role, CancellationToken cancellationToken)
+        public Task<string?> GetRoleNameAsync(AppRole role, CancellationToken cancellationToken)
         {
-            return Task.FromResult(role.Name);
+            return Task.FromResult<string?>(role.Name);
         }
 
-        public Task SetRoleNameAsync(AppRole role, string roleName, CancellationToken cancellationToken)
+        public Task SetRoleNameAsync(AppRole role, string? roleName, CancellationToken cancellationToken)
         {
-            role.Name = roleName;
-            return Task.FromResult(0);
+            role.Name = roleName ?? string.Empty;
+            return Task.CompletedTask;
         }
 
-        public Task<string> GetNormalizedRoleNameAsync(AppRole role, CancellationToken cancellationToken)
+        public Task<string?> GetNormalizedRoleNameAsync(AppRole role, CancellationToken cancellationToken)
         {
-            return Task.FromResult(role.NormalizedName);
+            return Task.FromResult<string?>(role.NormalizedName);
         }
 
-        public Task SetNormalizedRoleNameAsync(AppRole role, string normalizedName, CancellationToken cancellationToken)
+        public Task SetNormalizedRoleNameAsync(AppRole role, string? normalizedName, CancellationToken cancellationToken)
         {
-            role.NormalizedName = normalizedName;
-            return Task.FromResult(0);
+            role.NormalizedName = normalizedName ?? string.Empty;
+            return Task.CompletedTask;
         }
 
-        public async Task<AppRole> FindByIdAsync(string roleId, CancellationToken cancellationToken)
+        public async Task<AppRole?> FindByIdAsync(string roleId, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             return await GetAsync(roleId: roleId);
         }
 
-        public async Task<AppRole> FindByNameAsync(string normalizedRoleName, CancellationToken cancellationToken)
+        public async Task<AppRole?> FindByNameAsync(string normalizedRoleName, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 

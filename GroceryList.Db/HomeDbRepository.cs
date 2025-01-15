@@ -32,13 +32,17 @@ namespace GroceryList.Db
 			_connect = connect;
 		}
 
-		public Task<bool> HomeExistsAsync(string homeSlug, CancellationToken cancel)
+		public async Task<bool> HomeExistsAsync(string homeSlug, CancellationToken cancel)
 		{
+			await Task.Delay(50);
+			return false;
 		}
 
-		public Task<Lib.Models.Home?> AddHomeAsync(Lib.Models.Home home, CancellationToken cancel)
-		{
-		}
+		public async Task<Lib.Models.Home?> AddHomeAsync(Lib.Models.Home home, CancellationToken cancel)
+        {
+            await Task.Delay(50);
+            return null;
+        }
 
 		private const string getHome = "Global.SelectHomeOne";
 		//public Task<Models.Home?> GetHomeAsync(string homeId);
@@ -49,13 +53,16 @@ namespace GroceryList.Db
 			{
 				//var builder = new SqlResourceBuilder(_map, "Global.SelectHome", homeId, _log);
 				//builder.Append("`item_id` = @ItemId;");
+				//sql = _map.SetSql(getHome, builder.ToString());
 
-				sql = _map.SetSql(getHome, builder.ToString());
+				throw new InvalidOperationException("`" + getHome + "` Configuration NOT available");
 			}
 
 			if (!int.TryParse(homeSlug, out var homeId)) homeId = 0;
 
 			await using var conn = _db.CreateConnection();
+			if (conn == null) throw new InvalidOperationException("Connection NOT created");
+
 			conn.ConnectionString = _connect;
 			var parms = new DynamicParameters();
 			parms.Add("HomeSlug", homeSlug, System.Data.DbType.String);

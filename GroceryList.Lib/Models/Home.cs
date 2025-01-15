@@ -15,7 +15,7 @@ namespace GroceryList.Lib.Models
         [StringLength(200, MinimumLength = 4)]
         public string CreatedBy { get; set; }
         [Required]
-        public DateTimeOffset CreatedTime { get; set; }
+        public DateTimeOffset CreatedOn { get; set; }
         [Required]
         public string CreatedByMeta { get; set; }
     }

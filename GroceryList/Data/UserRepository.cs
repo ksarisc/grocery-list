@@ -17,20 +17,25 @@ namespace GroceryList.Data
     {
         private const string lookupFile = "lookup_user_data";
 
-        private readonly IDataService fileService;
-        private readonly string folder; //, userStore;
+        private readonly IDataService _data;
+        private readonly string _folder; //, userStore;
 
         public UserRepository(IDataService dataService, IConfiguration configuration)
         {
-            fileService = dataService;
-            folder = configuration.GetValue<string>("User::BasePath");
+            _data = dataService;
+            var folder = configuration.GetValue<string>("User::BasePath");
             //userStore = configuration.GetValue<string>("User::FileName");
             //userStore = "app_user";
+            if (string.IsNullOrWhiteSpace(folder))
+            {
+                throw new ArgumentNullException(nameof(folder), "`User.BasePath` Configuration MISSING");
+            }
+            _folder = folder;
         }
 
         private async Task UpdateLookups(AppUserLookup lookup)
         {
-            var list = await fileService.GetAsync<List<AppUserLookup>>(folder, lookupFile);
+            var list = await _data.GetAsync<List<AppUserLookup>>(_folder, lookupFile);
             if (list == null)list = new List<AppUserLookup>();
 
             // remove lookups when Email & UserName are NULL
@@ -52,7 +57,7 @@ namespace GroceryList.Data
                 }
             }
 
-            await fileService.SetAsync(folder, lookupFile, list);
+            await _data.SetAsync(_folder, lookupFile, list);
         } // END UpdateLookups
 
         public Task<IdentityResult> CreateAsync(AppUser user, CancellationToken cancellationToken)
@@ -93,7 +98,7 @@ namespace GroceryList.Data
             }
             dataUser.EditedTime = DateTimeOffset.UtcNow;
 
-            await fileService.SetAsync(folder, user.Id, dataUser);
+            await _data.SetAsync(_folder, user.Id, dataUser);
 
             // update the lookups
             if (changedEmail || changedName)
@@ -115,7 +120,7 @@ namespace GroceryList.Data
 
             var dataUser = await GetAsync(user.Id);
             // back it up & delete
-            await fileService.SetAsync(folder, user.Id, null);
+            await _data.SetAsync(_folder, user.Id, null);
 
             // update the lookups
             await UpdateLookups(new AppUserLookup
@@ -130,11 +135,11 @@ namespace GroceryList.Data
 
         private async Task<AppUser> GetAsync(string userId)
         {
-            var user = await fileService.GetAsync<AppUser>(folder, userId); //userStore);
+            var user = await _data.GetAsync<AppUser>(_folder, userId); //userStore);
             return user ?? AppUser.Empty;
         } // END GetAsync
 
-        public async Task<AppUser> FindByIdAsync(string userId, CancellationToken cancellationToken)
+        public async Task<AppUser?> FindByIdAsync(string userId, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -149,11 +154,11 @@ namespace GroceryList.Data
 
         // this is a problem, as you have to search a bunch of files
         // probably need to create some lookup files for these
-        public async Task<AppUser> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken)
+        public async Task<AppUser?> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var list = await fileService.GetAsync<AppUserLookup[]>(folder, lookupFile);
+            var list = await _data.GetAsync<AppUserLookup[]>(_folder, lookupFile);
             var user = list?.FirstOrDefault(u => u.UserName.Equals(normalizedUserName, StringComparison.OrdinalIgnoreCase));
 
             if (user == null || string.IsNullOrEmpty(user.Id)) return AppUser.Empty;
@@ -165,7 +170,7 @@ namespace GroceryList.Data
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var list = await fileService.GetAsync<AppUserLookup[]>(folder, lookupFile);
+            var list = await _data.GetAsync<AppUserLookup[]>(_folder, lookupFile);
             var user = list?.FirstOrDefault(u => u.Email.Equals(normalizedEmail, StringComparison.OrdinalIgnoreCase));
 
             if (user == null || string.IsNullOrEmpty(user.Id)) return AppUser.Empty;

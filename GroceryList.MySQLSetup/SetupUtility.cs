@@ -48,5 +48,44 @@ namespace GroceryList.MySQLSetup
             // home trips table (readonly JSON)
 
         }
+
+        //`id`
+        private const string _sqlAddHome = @"INSERT INTO `home` (`slug`, `label`, `created_on`, `created_by`, `created_meta`)
+VALUES ();
+
+SELECT LAST_INSERT_ID();";
+        private static string AddHome(DbConnection conn)
+        {
+            var homeId = Ulid.NewUlid().ToString();
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = _sqlAddHome;
+            
+            _ = cmd.AddParm("@Slug", homeId, System.Data.DbType.String, 30);
+            _ = cmd.AddParm("@label", homeId, System.Data.DbType.String, 50);
+            _ = cmd.AddParm("@created_on", DateTimeOffset.Now.UtcDateTime, System.Data.DbType.DateTime);
+	        _ = cmd.AddParm("@created_by", homeId, System.Data.DbType.String, 100);
+            _ = cmd.AddParm("@created_meta", homeId, System.Data.DbType.String, 1000);
+
+            // check state?
+            conn.Open();
+            if (cmd.ExecuteNonQuery() > 0) return homeId;
+
+            return null;
+        }
+
+        private static DbParameter AddParm(this DbCommand cmd, string name, object? value, System.Data.DbType? dbType = null, int? length = null)
+        {
+            var p = cmd.CreateParameter();
+            p.ParameterName = name;
+            if (value != null) p.Value = value;
+            else p.Value = DBNull.Value;
+
+            //p.DbType = System.Data.DbType.String;
+            if (dbType != null) p.DbType = dbType.Value;
+            //p.Precision = 30;
+
+            cmd.Parameters.Add(p);
+            return p;
+        }
     }
 }
