@@ -29,22 +29,23 @@ CREATE TABLE IF NOT EXISTS `{{homeId}}_current_list` (
     `price` double,
     `qty` INT,
     `created_on` datetime,
-    `created_tz` varchar(40),
-    `created_user` varchar(50) NOT NULL,
+    `created_tz` int,
+    `created_by` varchar(50) NOT NULL,
     `in_cart_on` datetime,
-    `in_cart_tz` varchar(40),
-    `in_cart_user` varchar(50),
+    `in_cart_tz` int,
+    `in_cart_by` varchar(50),
     `purchased_on` datetime,
-    `purchased_tz` varchar(40),
-    `purchased_user` varchar(50)
-) DEFAULT CHARSET=utf8mb4;
+    `purchased_tz` int,
+    `purchased_by` varchar(50),
+    UNIQUE (`name`)
+) DEFAULT CHARSET=UTF8MB4;
 
 -- create the previous trips table
 CREATE TABLE IF NOT EXISTS `{{homeId}}_previous_trips` (
-    `trip_id` BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `trip_id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `checkout_on` datetime,
-    `checkout_tz` varchar(40),
+    `checkout_tz` int,
     `item_list` JSON NOT NULL,
     `store_name` varchar(100),
     `total` double
-) DEFAULT CHARSET=utf8mb4;
+) DEFAULT CHARSET=UTF8MB4;

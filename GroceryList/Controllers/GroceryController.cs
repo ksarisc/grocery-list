@@ -25,12 +25,12 @@ namespace GroceryList.Controllers
         private readonly Lib.IGroceryRepository _repo;
         private readonly ILogger<GroceryController> _log;
 
-        private string homeId = string.Empty;
+        private string _homeId = string.Empty;
         [FromRoute]
         public string HomeId
         {
-            get { return homeId; }
-            set { homeId = value; }
+            get { return _homeId; }
+            set { _homeId = value; }
         }
 
         public GroceryController(IDataService dataService, Lib.IGroceryRepository groceryRepository, ILogger<GroceryController> groceryLogger)
@@ -48,19 +48,19 @@ namespace GroceryList.Controllers
         private async Task SetHomeAsync()
         {
             // ?? throw if homeId is null, empty, or whitespace ??
-            var localId = HttpContext.GetHomeId();
-            if (homeId.Equals(localId, StringComparison.Ordinal)) return;
+            var homeId = HttpContext.GetHomeId();
+            if (_homeId.Equals(homeId, StringComparison.Ordinal)) return;
             // should each page check that the cookie matches the route? sounds like auth?
             try
             {
-                var home = await _data.GetHomeAsync(homeId);
+                var home = await _data.GetHomeAsync(_homeId);
                 if (home != null) HttpContext.SetHome(home.Id, home.Title);
-                else HttpContext.SetHome(homeId, string.Empty);
+                else HttpContext.SetHome(_homeId, string.Empty);
             }
             catch (Exception ex)
             {
-                HttpContext.SetHome(homeId, string.Empty);
-                _log.LogError(ex, "Grocery.SetHome ({homeId}) Error", homeId);
+                HttpContext.SetHome(_homeId, string.Empty);
+                _log.LogError(ex, "Grocery.SetHome ({homeId}) Error", _homeId);
             }
         }
 
@@ -71,7 +71,7 @@ namespace GroceryList.Controllers
             await SetHomeAsync();
 
             // display the current list
-            var list = await _repo.GetListAsync(homeId, cancel);
+            var list = await _repo.GetListAsync(_homeId, cancel);
             return View(list);
         }
 
@@ -107,7 +107,7 @@ namespace GroceryList.Controllers
             }
             try
             {
-                var model = formModel.ToModel(homeId);
+                var model = formModel.ToModel(_homeId);
                 model.CreatedTime = DateTimeOffset.UtcNow;
                 model.CreatedUser = user;
                 if (formModel.AddToCart)
@@ -122,7 +122,7 @@ namespace GroceryList.Controllers
             }
             catch (Exception ex)
             {
-                _log.LogError(ex, "Add Error ({0}): {0}", homeId, formModel);
+                _log.LogError(ex, "Add Error ({0}): {0}", _homeId, formModel);
                 ViewData["ErrorMessage"] = "Unable to add the item";
             }
             return View(formModel);
@@ -139,7 +139,7 @@ namespace GroceryList.Controllers
             }
             //TempData["ErrorMessage"] = null; //$"Unable to edit item ({itemId})";
             //return this.RedirectToGrocery();
-            var model = await _repo.GetItemAsync(homeId, itemId, cancel);
+            var model = await _repo.GetItemAsync(_homeId, itemId, cancel);
             return View(model?.ToFormModel());
         }
         [HttpPost("edit/{itemId}")]
@@ -151,7 +151,7 @@ namespace GroceryList.Controllers
                 TempData["ErrorMessage"] = $"No item specified";
                 return this.RedirectToGrocery();
             }
-            if (!itemId.Equals(formModel.Id, StringComparison.Ordinal) || !homeId.Equals(formModel.HomeId, StringComparison.Ordinal))
+            if (!itemId.Equals(formModel.Id, StringComparison.Ordinal) || !_homeId.Equals(formModel.HomeId, StringComparison.Ordinal))
             {
                 TempData["ErrorMessage"] = $"Invalid item specified";
                 return this.RedirectToGrocery();
@@ -163,7 +163,7 @@ namespace GroceryList.Controllers
             }
             try
             {
-                var model = formModel.ToModel(homeId);
+                var model = formModel.ToModel(_homeId);
                 if (formModel.AddToCart)
                 {
                     AddToCart(model);
@@ -175,7 +175,7 @@ namespace GroceryList.Controllers
             }
             catch (Exception ex)
             {
-                _log.LogError(ex, "Edit Error ({0}): {0}", homeId, formModel);
+                _log.LogError(ex, "Edit Error ({0}): {0}", _homeId, formModel);
                 ViewData["ErrorMessage"] = "Unable to edit the item";
             }
             return View(formModel);
@@ -192,12 +192,12 @@ namespace GroceryList.Controllers
 
             try
             {
-                var model = await _repo.GetItemAsync(homeId, itemId, cancel);
+                var model = await _repo.GetItemAsync(_homeId, itemId, cancel);
                 return View(model);
             }
             catch (Exception ex)
             {
-                _log.LogError(ex, "Delete.Get Error: {0}|{1}", homeId, itemId);
+                _log.LogError(ex, "Delete.Get Error: {0}|{1}", _homeId, itemId);
                 TempData["ErrorMessage"] = $"Unable to remove the item: {itemId}";
             }
             return this.RedirectToGrocery();
@@ -226,7 +226,7 @@ namespace GroceryList.Controllers
             }
             catch (Exception ex)
             {
-                _log.LogError(ex, "Delete Error: {0}|{1}", homeId, itemId);
+                _log.LogError(ex, "Delete Error: {0}|{1}", _homeId, itemId);
                 ViewData["ErrorMessage"] = "Unable to remove the item";
             }
 
@@ -246,7 +246,7 @@ namespace GroceryList.Controllers
 
             try
             {
-                var model = await _repo.GetItemAsync(homeId, itemId, cancel);
+                var model = await _repo.GetItemAsync(_homeId, itemId, cancel);
                 if (model == null)
                 {
                     TempData["ErrorMessage"] = $"Missing grocery item ({itemId})";
@@ -259,7 +259,7 @@ namespace GroceryList.Controllers
             }
             catch (Exception ex)
             {
-                _log.LogError(ex, "Delete Error: {0}|{1}", homeId, itemId);
+                _log.LogError(ex, "Delete Error: {0}|{1}", _homeId, itemId);
                 ViewData["ErrorMessage"] = "Unable to remove the item";
             }
 
@@ -274,7 +274,7 @@ namespace GroceryList.Controllers
             try
             {
                 // checkout all items currently in cart
-                var list = await _repo.GetCheckoutAsync(homeId, cancel);
+                var list = await _repo.GetCheckoutAsync(_homeId, cancel);
 
                 if (list == null || !list.Any())
                 {
@@ -284,13 +284,13 @@ namespace GroceryList.Controllers
 
                 return View(new CheckoutForm
                 {
-                    HomeId = homeId,
+                    HomeId = _homeId,
                     Items = list.AsList(),
                 });
             }
             catch (Exception ex)
             {
-                _log.LogError(ex, "Checkout.Get Error: {0}", homeId);
+                _log.LogError(ex, "Checkout.Get Error: {0}", _homeId);
                 ViewData["ErrorMessage"] = "Checkout failed";
             }
             return this.RedirectToGrocery();
@@ -299,10 +299,9 @@ namespace GroceryList.Controllers
         [HttpPost("checkout")]
         public async Task<IActionResult> Checkout(CheckoutForm model, CancellationToken cancel)
         {
-            //if (model == null) { }
-            if (homeId != model.HomeId)
+            if (_homeId != model.HomeId)
             {
-                _log.LogError("Home `{0}` does NOT match model home ID `{1}` :: CHECKOUT: {2}", homeId,
+                _log.LogError("Home `{0}` does NOT match model home ID `{1}` :: CHECKOUT: {2}", _homeId,
                     model.HomeId, System.Text.Json.JsonSerializer.Serialize(model));
                 TempData["ErrorMessage"] = "Checkout NOT Valid";
                 return this.RedirectToGrocery();
@@ -313,13 +312,13 @@ namespace GroceryList.Controllers
             try
             {
                 // checkout all items currently in cart
-                list = await _repo.CheckoutAsync(homeId, model.ItemIds, model.StoreName, cancel);
+                list = await _repo.CheckoutAsync(_homeId, model.ItemIds, model.StoreName, cancel);
                 TempData["InfoMessage"] = $"{list.Count()} items marked as purchased";
                 TempData["ErrorMessage"] = null;
             }
             catch (Exception ex)
             {
-                _log.LogError(ex, "Checkout Error: {0} (InCart: {1})", homeId, list);
+                _log.LogError(ex, "Checkout Error: {0} (InCart: {1})", _homeId, list);
                 TempData["ErrorMessage"] = "Checkout failed";
             }
             return this.RedirectToGrocery();
@@ -332,14 +331,14 @@ namespace GroceryList.Controllers
             var result = new Models.Forms.GroceryTripForm();
             try
             {
-                var list = await _repo.GetTripsAsync(homeId, cancel);
+                var list = await _repo.GetTripsAsync(_homeId, cancel);
                 if (list.Any()) result.Items = list;
                 TempData["InfoMessage"] = $"{list.Count()} trips found";
                 TempData["ErrorMessage"] = null;
             }
             catch (Exception ex)
             {
-                _log.LogError(ex, "PreviousTrips Error: {0}", homeId);
+                _log.LogError(ex, "PreviousTrips Error: {0}", _homeId);
                 ViewData["ErrorMessage"] = "Unable to retrieve previous trips";
             }
             return View(result);

@@ -9,7 +9,7 @@ namespace GroceryList.Models
         [Required]
         public int Identity { get; set; }
         [Required]
-        [StringLength(100, MinimumLength = 4)]
+        [StringLength(50, MinimumLength = 4)]
         public string Id { get; set; }
         [StringLength(100, MinimumLength = 4)]
         public string Title { get; set; }
@@ -19,6 +19,7 @@ namespace GroceryList.Models
         [Required]
         public DateTimeOffset CreatedTime { get; set; }
         [Required]
+        [StringLength(1000, MinimumLength = 4)]
         public string CreatedByMeta { get; set; }
     }
     #nullable enable

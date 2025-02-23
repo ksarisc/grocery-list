@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace GroceryList.Services
@@ -14,17 +15,17 @@ namespace GroceryList.Services
     /// </summary>
     public interface IDataService : IDisposable
     {
-        public Task<bool> HomeExistsAsync(string homeId);
-        public Task<Models.Home?> AddHomeAsync(Models.Home home);
-        public Task<Models.Home?> GetHomeAsync(string homeId);
+        public Task<bool> HomeExistsAsync(string homeId, CancellationToken cancel = default);
+        public Task<Models.Home?> AddHomeAsync(Models.Home home, CancellationToken cancel = default);
+        public Task<Models.Home?> GetHomeAsync(string homeId, CancellationToken cancel = default);
 
-        public Task<T?> GetAsync<T>(string homeId, string storeName);
-        public Task<T?> GetAsync<T>(Models.DataRequest request);
-        public Task SetAsync(string homeId, string storeName, object? data);
-        public Task SetAsync(Models.DataRequest request, object? data);
+        public Task<T?> GetAsync<T>(string homeId, string storeName, CancellationToken cancel = default);
+        public Task<T?> GetAsync<T>(Models.DataRequest request, CancellationToken cancel = default);
+        public Task SetAsync(string homeId, string storeName, object? data, CancellationToken cancel = default);
+        public Task SetAsync(Models.DataRequest request, object? data, CancellationToken cancel = default);
 
-        public Task<List<Models.DataRequestInfo>> ListAsync(string homeId, string actionName, int maxResults = 0);
-        public Task<List<Models.DataRequestInfo>> ListAsync(Models.DataRequest request, int maxResults = 0);
+        public Task<List<Models.DataRequestInfo>> ListAsync(string homeId, string actionName, int maxResults = 0, CancellationToken cancel = default);
+        public Task<List<Models.DataRequestInfo>> ListAsync(Models.DataRequest request, int maxResults = 0, CancellationToken cancel = default);
     }
 
     public class FileDataService : IDataService
@@ -60,11 +61,11 @@ namespace GroceryList.Services
             );
         }
 
-        public Task<bool> HomeExistsAsync(string homeId)
+        public Task<bool> HomeExistsAsync(string homeId, CancellationToken cancel = default)
         {
             return Task.FromResult(Directory.Exists(Path.Combine(dataPath, homeId)));
         }
-        public async Task<Models.Home?> AddHomeAsync(Models.Home home) // should the home be defined prior to add?
+        public async Task<Models.Home?> AddHomeAsync(Models.Home home, CancellationToken cancel = default) // should the home be defined prior to add?
         {
             var logEnabled = logger.IsEnabled(LogLevel.Debug);
             if (logEnabled)
@@ -91,7 +92,7 @@ namespace GroceryList.Services
             }
             return home;
         } // END AddHomeAsync
-        public async Task<Models.Home?> GetHomeAsync(string homeId)
+        public async Task<Models.Home?> GetHomeAsync(string homeId, CancellationToken cancel = default)
         {
             var path = Path.Combine(dataPath, homeId, homeFile);
             if (!File.Exists(path))
@@ -102,7 +103,7 @@ namespace GroceryList.Services
             return await JsonSerializer.DeserializeAsync<Models.Home>(file);
         } // END GetHomeAsync
 
-        public async Task<T?> GetAsync<T>(string homeId, string storeName)
+        public async Task<T?> GetAsync<T>(string homeId, string storeName, CancellationToken cancel = default)
         {
             var path = GetFilePath(homeId, storeName);
             if (!File.Exists(path))
@@ -112,7 +113,7 @@ namespace GroceryList.Services
             using var file = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize, true);
             return await JsonSerializer.DeserializeAsync<T>(file); //, jsonOptions, cancel);
         }
-        public async Task<T?> GetAsync<T>(Models.DataRequest request)
+        public async Task<T?> GetAsync<T>(Models.DataRequest request, CancellationToken cancel = default)
         {
             var info = GetTypePath(request);
             if (info.Directory == null || !info.Directory.Exists)
@@ -127,7 +128,7 @@ namespace GroceryList.Services
             return await JsonSerializer.DeserializeAsync<T>(file); //, jsonOptions, cancel);
         } // END GetAsync
 
-        public async Task SetAsync(string homeId, string storeName, object? data)
+        public async Task SetAsync(string homeId, string storeName, object? data, CancellationToken cancel = default)
         {
             var path = GetFilePath(homeId, storeName);
             var exists = File.Exists(path);
@@ -160,7 +161,7 @@ namespace GroceryList.Services
             }
         } // END SetAsync
 
-        public async Task SetAsync(Models.DataRequest request, object? data)
+        public async Task SetAsync(Models.DataRequest request, object? data, CancellationToken cancel = default)
         {
             request.StoreName += Utils.GetNewId();
             var info = GetTypePath(request);
@@ -184,9 +185,9 @@ namespace GroceryList.Services
             await JsonSerializer.SerializeAsync(file, data); //, jsonOptions, cancel);
         } // END SetAsync
 
-        public Task<List<Models.DataRequestInfo>> ListAsync(string homeId, string actionName, int maxResults = 0) =>
-                                            ListAsync(new Models.DataRequest { HomeId = homeId, ActionName = actionName, }, maxResults);
-        public Task<List<Models.DataRequestInfo>> ListAsync(Models.DataRequest request, int maxResults = 0)
+        public Task<List<Models.DataRequestInfo>> ListAsync(string homeId, string actionName, int maxResults = 0, CancellationToken cancel = default) =>
+                                            ListAsync(new Models.DataRequest { HomeId = homeId, ActionName = actionName, }, maxResults, cancel);
+        public Task<List<Models.DataRequestInfo>> ListAsync(Models.DataRequest request, int maxResults = 0, CancellationToken cancel = default)
         {
             if (maxResults < 0) maxResults = 0;
             var list = new List<Models.DataRequestInfo>();

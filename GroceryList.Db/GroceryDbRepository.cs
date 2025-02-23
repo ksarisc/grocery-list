@@ -43,11 +43,6 @@ public class GroceryDbRepository : IGroceryRepository
         return conn;
     }
 
-    private async Task CreateHome()
-    {
-        await Task.Delay(10);
-    }
-
     public async Task<IEnumerable<GroceryItem>> GetListAsync(string homeId, CancellationToken cancel)
     {
         var sqlName = $"{homeId}_SelectAllCurrent";
