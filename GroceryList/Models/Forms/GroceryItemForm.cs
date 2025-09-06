@@ -5,9 +5,9 @@ namespace GroceryList.Models.Forms
 {
     public class GroceryItemForm
     {
-        [StringLength(50, MinimumLength = 20)]
+        [StringLength(50, MinimumLength = 1)]
         public string Id { get; set; } = string.Empty;
-        [StringLength(50, MinimumLength = 20)]
+        [StringLength(50, MinimumLength = 1)]
         public string HomeId { get; set; } = string.Empty;
 
         [Required]

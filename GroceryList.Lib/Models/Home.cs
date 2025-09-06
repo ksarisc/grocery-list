@@ -7,7 +7,7 @@ namespace GroceryList.Lib.Models
     public class Home
     {
         [Required]
-        [StringLength(100, MinimumLength = 4)]
+        [StringLength(100, MinimumLength = 1)]
         public string Id { get; set; }
         [StringLength(100, MinimumLength = 4)]
         public string Title { get; set; }

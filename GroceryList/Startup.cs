@@ -41,7 +41,8 @@ namespace GroceryList
                 services.AddSingleton<Lib.IResourceMapper, Services.ResourceMapper>();
                 services.AddSingleton<System.Data.Common.DbProviderFactory>(MySqlConnector.MySqlConnectorFactory.Instance);
                 services.AddScoped<Services.IDataService, Data.MySQLDataService>();
-                services.AddScoped<Lib.IGroceryRepository, Db.GroceryDbRepository>();
+                services.AddScoped<Lib.IGroceryRepository, Data.MySQLGroceryRepository>();
+                //Db.GroceryDbRepository>();
             }
             else
             {

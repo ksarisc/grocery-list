@@ -27,10 +27,11 @@ namespace GroceryList.Data
             _log = dataLogger;
         }
 
-        private const string _sqlGetHomeId = "SELECT `home_id` FROM `home` WHERE `home_slug` = @HomeSlug;";
+        private const string _sqlGetHomeId = "SELECT `home_id` FROM `home` WHERE `slug` = @HomeSlug;";
         private async Task<int> GetHomeId(MySqlConnection conn, string homeSlug, CancellationToken cancel)
         {
-            if (int.TryParse(homeSlug, out var id) && id > 0)
+            int id;
+            if (int.TryParse(homeSlug, out id) && id > 0)
             {
                 return id;
             }

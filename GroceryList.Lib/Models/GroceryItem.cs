@@ -7,14 +7,14 @@ namespace GroceryList.Lib.Models
     public class GroceryItem
     {
         [Required]
-        [StringLength(50, MinimumLength = 20)]
+        [StringLength(50, MinimumLength = 1)]
         public string? Id { get; set; }
         [Required]
-        [StringLength(50, MinimumLength = 20)]
-        public string HomeId { get; set; }
+        [StringLength(50, MinimumLength = 1)]
+        public string HomeId { get; set; } = string.Empty;
         [Required]
         [StringLength(50, MinimumLength = 2)]
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
         [StringLength(50, MinimumLength = 2)]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? Section { get; set; }
@@ -35,7 +35,7 @@ namespace GroceryList.Lib.Models
         [Required]
         public DateTimeOffset CreatedTime { get; set; }
         [Required]
-        public string CreatedUser { get; set; }
+        public string CreatedUser { get; set; } = string.Empty;
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public DateTimeOffset? InCartTime { get; set; }
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
