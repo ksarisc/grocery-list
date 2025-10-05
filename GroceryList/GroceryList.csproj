@@ -19,6 +19,7 @@
   <ItemGroup>
     <PackageReference Include="AWSSDK.S3" Version="3.7.404.5" />
     <PackageReference Include="Dapper" Version="2.1.66" />
+    <PackageReference Include="Devart.Data.SQLite" Version="6.4.290" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.10" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.10" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.10" />

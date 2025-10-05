@@ -44,6 +44,13 @@ namespace GroceryList
                 services.AddScoped<Lib.IGroceryRepository, Data.MySQLGroceryRepository>();
                 //Db.GroceryDbRepository>();
             }
+            else if (Configuration.GetValue<bool>("UseSQLite"))
+            {
+                services.AddSingleton<Lib.IResourceMapper, Services.ResourceMapper>();
+                services.AddSingleton<System.Data.Common.DbProviderFactory>(SQLite.SQLiteConnectorFactory.Instance);
+                services.AddScoped<Services.IDataService, Data.SQLiteDataService>();
+                services.AddScoped<Lib.IGroceryRepository, Data.SQLiteGroceryRepository>();
+            }
             else
             {
                 services.AddScoped<Services.IDataService, Services.FileDataService>();
