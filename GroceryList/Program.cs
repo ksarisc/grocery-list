@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
+using Serilog;
 
 namespace GroceryList
 {
@@ -7,6 +8,13 @@ namespace GroceryList
     {
         public static void Main(string[] args)
         {
+            Log.Logger = new LoggerConfiguration()
+                //.ReadFrom(args)
+                .MinimumLevel.Debug()
+                .WriteTo.Console()
+                .WriteTo.File("logs/myapp.txt", rollingInterval: RollingInterval.Day)
+                .CreateLogger();
+
             CreateHostBuilder(args).Build().Run();
         }
 

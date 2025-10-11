@@ -8,9 +8,8 @@ using System;
 using System.Data.Common;
 using System.Net.Mail;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using GroceryList.Services;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+//using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace GroceryList.Data
 {
@@ -152,7 +151,7 @@ WHERE `user_id` = @UserId;";
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "User.Delete `{@user}`", user);
+                _log.Error(ex, "User.Delete `{@user}`", user);
             }
             return IdentityResult.Failed(new IdentityError { Description = $"ID `{user.Id}` could NOT be deleted!" });
         }

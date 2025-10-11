@@ -4,7 +4,6 @@ using GroceryList.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,15 +20,14 @@ namespace GroceryList.Controllers
         private readonly Services.IDataService dataSvc;
         private readonly Data.IUpdateCache cache;
         private readonly GroceryList.Lib.IGroceryRepository _repo;
-        private readonly ILogger<GroceryController> logger;
+        private readonly Serilog.ILogger _log;
 
-        public GroceryApiController(Services.IDataService dataService, Data.IUpdateCache groceryCache,
-            GroceryList.Lib.IGroceryRepository groceryRepository, ILogger<GroceryController> groceryLogger)
+        public GroceryApiController(IDataService dataService, Data.IUpdateCache groceryCache, Lib.IGroceryRepository groceryRepository) //, ILogger<GroceryController> groceryLogger)
         {
             dataSvc = dataService;
             cache = groceryCache;
             _repo = groceryRepository;
-            logger = groceryLogger;
+            _log = Serilog.Log.Logger;
             //lastUpdated = DateTime.MinValue; //groceryRepo.GetLastUpdated();
         }
 
@@ -52,7 +50,7 @@ namespace GroceryList.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "GetCurrent (Home: {homeId}) ERR", homeId);
+                _log.Error(ex, "GetCurrent (Home: {homeId}) ERR", homeId);
             }
             return new Models.ApiResult<IEnumerable<GroceryItem>>("Unknown error happened");
         } // END GetCurrent
@@ -97,7 +95,7 @@ namespace GroceryList.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Add Error: {@formModel}", formModel);
+                _log.Error(ex, "Add Error: {@formModel}", formModel);
             }
             return new Models.ApiResult<GroceryItemForm>(formModel, "error in validation");
         } // END Add

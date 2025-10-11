@@ -4,7 +4,6 @@ using Dapper;
 using GroceryList.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -19,14 +18,14 @@ namespace GroceryList.Data
         private const string _lookupFile = "lookup_role_data";
 
         private readonly Services.IDataService _data;
-        private readonly ILogger<RoleRepository> _log;
+        private readonly Serilog.ILogger _log;
 
         private readonly string _folder;
 
-        public RoleRepository(Services.IDataService dataService, ILogger<RoleRepository> roleLogger, IConfiguration configuration)
+        public RoleRepository(Services.IDataService dataService, IConfiguration configuration) //, ILogger<RoleRepository> roleLogger
         {
+            _log = Serilog.Log.Logger;
             _data = dataService;
-            _log = roleLogger;
             var folder = configuration.GetValue<string>("Role::BasePath");
             if (string.IsNullOrWhiteSpace(folder))
             {
@@ -139,15 +138,15 @@ namespace GroceryList.Data
 
     public sealed class DbRoleRepository : IRoleStore<AppRole>, IDisposable
     {
-        private readonly DbConnection conn;
-        private readonly ILogger<DbRoleRepository> logger;
+        private readonly DbConnection _conn;
+        private readonly Serilog.ILogger _log;
 
-        public DbRoleRepository(DbProviderFactory providerFactory, IConfiguration configuration, ILogger<DbRoleRepository> userLogger)
+        public DbRoleRepository(DbProviderFactory providerFactory, IConfiguration configuration) //, ILogger<DbRoleRepository> userLogger)
         {
-            logger = userLogger;
+            _log = Serilog.Log.Logger;
             var connect = configuration.GetConnectionWithSecrets("Main");
-            conn = providerFactory.CreateConnection() ?? throw new NullReferenceException("Main factory generated NO valid connection");
-            conn.ConnectionString = connect;
+            _conn = providerFactory.CreateConnection() ?? throw new NullReferenceException("Main factory generated NO valid connection");
+            _conn.ConnectionString = connect;
         }
 
         private const string sqlGet = @"";
@@ -155,13 +154,13 @@ namespace GroceryList.Data
         {
             try
             {
-                var role = await conn.QueryFirstOrDefaultAsync(sqlGet, new { RoleId = roleId, NormalName = normalName, });
+                var role = await _conn.QueryFirstOrDefaultAsync(sqlGet, new { RoleId = roleId, NormalName = normalName, });
                 if (role != null)
                     return role;
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Get Role (ID:{roleId})(Name:{normalName}) ERR", roleId, normalName);
+                _log.Error(ex, "Get Role (ID:{roleId})(Name:{normalName}) ERR", roleId, normalName);
             }
             //throw new KeyNotFoundException($"Role `{roleId}` NOT Found")
             return AppRole.Empty;
@@ -180,7 +179,7 @@ namespace GroceryList.Data
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Create Role ERR ({@role})", role);
+                _log.Error(ex, "Create Role ERR ({@role})", role);
             }
             return IdentityResult.Failed(new IdentityError { Description = $"Unable to create Role: {role.Name}" });
         } // END CreateAsync
@@ -196,12 +195,12 @@ namespace GroceryList.Data
 
             try
             {
-                var result = await conn.ExecuteAsync(sqlUpdate, role);
+                var result = await _conn.ExecuteAsync(sqlUpdate, role);
                 return IdentityResult.Success;
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Update Role ERR ({@role})", role);
+                _log.Error(ex, "Update Role ERR ({@role})", role);
             }
             return IdentityResult.Failed(new IdentityError { Description = $"Unable to update Role: {role.Name}" });
         } // END UpdateAsync
@@ -213,12 +212,12 @@ namespace GroceryList.Data
 
             try
             {
-                var result = await conn.ExecuteAsync(sqlDelete, role);
+                var result = await _conn.ExecuteAsync(sqlDelete, role);
                 return IdentityResult.Success;
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Delete Role ERR ({@role})", role);
+                _log.Error(ex, "Delete Role ERR ({@role})", role);
             }
             return IdentityResult.Failed(new IdentityError { Description = $"Unable to delete Role: {role.Name}" });
         } // END DeleteAsync

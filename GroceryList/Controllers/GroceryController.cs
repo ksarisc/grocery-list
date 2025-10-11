@@ -4,7 +4,6 @@ using GroceryList.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -23,7 +22,7 @@ namespace GroceryList.Controllers
     {
         private readonly IDataService _data;
         private readonly Lib.IGroceryRepository _repo;
-        private readonly ILogger<GroceryController> _log;
+        private readonly Serilog.ILogger _log;
 
         private string _homeId = string.Empty;
         [FromRoute]
@@ -33,11 +32,12 @@ namespace GroceryList.Controllers
             set { _homeId = value; }
         }
 
-        public GroceryController(IDataService dataService, Lib.IGroceryRepository groceryRepository, ILogger<GroceryController> groceryLogger)
+        public GroceryController(IDataService dataService, Lib.IGroceryRepository groceryRepository) //, ILogger<GroceryController> groceryLogger)
         {
             _data = dataService;
             _repo = groceryRepository;
-            _log = groceryLogger;
+            //_log = groceryLogger;
+            _log = Serilog.Log.Logger;
         }
 
         private string GetUser()
@@ -60,7 +60,7 @@ namespace GroceryList.Controllers
             catch (Exception ex)
             {
                 HttpContext.SetHome(_homeId, string.Empty);
-                _log.LogError(ex, "Grocery.SetHome ({homeId}) Error", _homeId);
+                _log.Error(ex, "Grocery.SetHome ({homeId}) Error", _homeId);
             }
         }
 
@@ -122,7 +122,7 @@ namespace GroceryList.Controllers
             }
             catch (Exception ex)
             {
-                _log.LogError(ex, "Add Error ({0}): {0}", _homeId, formModel);
+                _log.Error(ex, "Add Error ({0}): {0}", _homeId, formModel);
                 ViewData["ErrorMessage"] = "Unable to add the item";
             }
             return View(formModel);
@@ -175,7 +175,7 @@ namespace GroceryList.Controllers
             }
             catch (Exception ex)
             {
-                _log.LogError(ex, "Edit Error ({0}): {0}", _homeId, formModel);
+                _log.Error(ex, "Edit Error ({0}): {0}", _homeId, formModel);
                 ViewData["ErrorMessage"] = "Unable to edit the item";
             }
             return View(formModel);
@@ -197,7 +197,7 @@ namespace GroceryList.Controllers
             }
             catch (Exception ex)
             {
-                _log.LogError(ex, "Delete.Get Error: {0}|{1}", _homeId, itemId);
+                _log.Error(ex, "Delete.Get Error: {0}|{1}", _homeId, itemId);
                 TempData["ErrorMessage"] = $"Unable to remove the item: {itemId}";
             }
             return this.RedirectToGrocery();
@@ -226,7 +226,7 @@ namespace GroceryList.Controllers
             }
             catch (Exception ex)
             {
-                _log.LogError(ex, "Delete Error: {0}|{1}", _homeId, itemId);
+                _log.Error(ex, "Delete Error: {0}|{1}", _homeId, itemId);
                 ViewData["ErrorMessage"] = "Unable to remove the item";
             }
 
@@ -259,7 +259,7 @@ namespace GroceryList.Controllers
             }
             catch (Exception ex)
             {
-                _log.LogError(ex, "Delete Error: {0}|{1}", _homeId, itemId);
+                _log.Error(ex, "Delete Error: {0}|{1}", _homeId, itemId);
                 ViewData["ErrorMessage"] = "Unable to remove the item";
             }
 
@@ -290,7 +290,7 @@ namespace GroceryList.Controllers
             }
             catch (Exception ex)
             {
-                _log.LogError(ex, "Checkout.Get Error: {0}", _homeId);
+                _log.Error(ex, "Checkout.Get Error: {0}", _homeId);
                 ViewData["ErrorMessage"] = "Checkout failed";
             }
             return this.RedirectToGrocery();
@@ -301,7 +301,7 @@ namespace GroceryList.Controllers
         {
             if (_homeId != model.HomeId)
             {
-                _log.LogError("Home `{0}` does NOT match model home ID `{1}` :: CHECKOUT: {2}", _homeId,
+                _log.Error("Home `{0}` does NOT match model home ID `{1}` :: CHECKOUT: {2}", _homeId,
                     model.HomeId, System.Text.Json.JsonSerializer.Serialize(model));
                 TempData["ErrorMessage"] = "Checkout NOT Valid";
                 return this.RedirectToGrocery();
@@ -318,7 +318,7 @@ namespace GroceryList.Controllers
             }
             catch (Exception ex)
             {
-                _log.LogError(ex, "Checkout Error: {0} (InCart: {1})", _homeId, list);
+                _log.Error(ex, "Checkout Error: {0} (InCart: {1})", _homeId, list);
                 TempData["ErrorMessage"] = "Checkout failed";
             }
             return this.RedirectToGrocery();
@@ -338,7 +338,7 @@ namespace GroceryList.Controllers
             }
             catch (Exception ex)
             {
-                _log.LogError(ex, "PreviousTrips Error: {0}", _homeId);
+                _log.Error(ex, "PreviousTrips Error: {0}", _homeId);
                 ViewData["ErrorMessage"] = "Unable to retrieve previous trips";
             }
             return View(result);

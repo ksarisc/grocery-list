@@ -4,10 +4,11 @@ using GroceryList.Lib;
 using GroceryList.Lib.Models;
 using GroceryList.Models.Data;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
+using Serilog;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,155 +16,190 @@ namespace GroceryList.Data
 {
     public sealed class SQLiteGroceryRepository : IGroceryRepository
     {
-        // for SQlite this will be different files for different homes (don't forget to enable WAL)
-        private readonly ConcurrentDictionary<string, int> _homes = new(); //StringComparer.OrdinalIgnoreCase);
-        private readonly string _connect;
-        private readonly ILogger<SQLiteGroceryRepository> _log;
+        private record HomeData(int HomeId, string Slug, string DbFile, string Connect);
 
-        public SQLiteGroceryRepository(IConfiguration configuration, ILogger<SQLiteGroceryRepository> dataLogger) //IResourceMapper resourceMapper, 
+        // for SQlite this will be different files for different homes (don't forget to enable WAL)
+        private static readonly ConcurrentDictionary<string, HomeData> _homes = new(StringComparer.OrdinalIgnoreCase);
+        private readonly string _mainConn, _dbPath;
+        private readonly ILogger _log;
+
+        public SQLiteGroceryRepository(IConfiguration configuration) //, ILogger<SQLiteGroceryRepository> dataLogger) //IResourceMapper resourceMapper, 
         {
-            _connect = configuration.GetConnectionWithSecrets("Main");
+            //_log = Log.ForContext<SQLiteGroceryRepository>();
+            _log = Log.Logger;
+
+            // this should have the path where database files are stored
+            _mainConn = configuration.GetConnectionWithSecrets("Main");
+            var sb = new SQLiteConnectionStringBuilder(_mainConn);
+            sb.ReadOnlyDatabase = true;
+            sb.Password = "TestPassword!"; //configuration.Get<string>("MainDbPassword");
             //map = resourceMapper;
-            _log = dataLogger;
+            _dbPath = configuration.Get;
+            //_log = dataLogger;
         }
 
-        private const string _sqlGetHomeId = "SELECT `home_id` FROM `home` WHERE `slug` = @HomeSlug;";
-        private async Task<int> GetHomeId(SQLiteConnection conn, string homeSlug, CancellationToken cancel)
+        private const string _sqlGetHomeId = "SELECT \"home_id\", \"db_file\" FROM \"home\" WHERE \"slug\" = @HomeSlug;";
+        private HomeData GetHome(string homeSlug)
         {
-            int id;
-            if (int.TryParse(homeSlug, out id) && id > 0)
+            // quicker lookup for int?
+            //if (int.TryParse(homeSlug, out var id) && id > 0)
+            //{
+            //    return id;
+            //}
+
+            if (homeSlug.Length < 10 || homeSlug.Length > 150)
             {
-                return id;
+                _log.Warning("GetDbFile abnormal slug: {homeSlug}", homeSlug);
+                throw new ArgumentOutOfRangeException(nameof(homeSlug), "The specified `homeSlug` is INVALID");
             }
 
             // cache the results & check it?
-            var homeLower = homeSlug.ToLower();
-            if (_homes.TryGetValue(homeLower, out id) && id > 0)
+            if (_homes.TryGetValue(homeSlug, out var data) && data.HomeId > 0)
             {
-                return id;
+                return data;
             }
 
-            await using var cmd = new SQLiteCommand(_sqlGetHomeId, conn);
+            var conn = new SQLiteConnection(_mainConn);
+            conn.Open();
+            //using var wal = new SQLiteCommand("PRAGMA journal_mode = 'wal'", conn);
+            //wal.ExecuteNonQuery();
+            using var cmd = new SQLiteCommand(_sqlGetHomeId, conn);
             var p = new SQLiteParameter("@HomeSlug", SQLiteType.Text);
             p.Value = homeSlug;
-            var result = await cmd.ExecuteScalarAsync(cancel);
-            if (result != null && result != DBNull.Value)
+            // if database password, salt, and/or path is stored common datasource (might be nice to use key-value store), this will need to be ExecuteReader
+            var result = cmd.ExecuteScalar();
+            if (null == result || DBNull.Value == result)
             {
-                id = Convert.ToInt32(result);
-                _homes.AddOrUpdate(homeLower, id, (s, i) => id);
-                return id;
+                throw new ArgumentOutOfRangeException(nameof(homeSlug), $"The specified `homeSlug` was NOT found: {homeSlug}");
             }
-            //var def = new CommandDefinition(_sqlGetHomeId, new {}, cancellationToken: cancel);
-            //found = await conn.QueryFirstOrDefaultAsync<int?>(def) ?? 0;
-            return 0;
+
+            var id = Convert.ToInt32(result);
+            var file = Path.Combine(_dbPath, $"home_{id}.db");
+            if (!File.Exists(file))
+            {
+                CreateDb(file);
+            }
+
+            // setup the connection (get database from cache or build)
+            var connect = $"Data Source={file};";
+            //Password=myPassword;
+            //Pooling=True;
+
+            // build the object
+            data = new HomeData(id, homeSlug, file, connect);
+            _homes.AddOrUpdate(homeSlug, data, (s, i) => data);
+            return data;
+        }
+
+        private void CreateDb(string fileName)
+        {
+            throw new NotImplementedException();
+        }
+
+        private SQLiteConnection Connect(string homeSlug)
+        {
+            var dbFile = GetDbFile(homeSlug);
+
+            // get the home's connection
+            var conn = new SQLiteConnection(connect);
+            conn.Open();
+            using var wal = new SQLiteCommand("PRAGMA journal_mode = 'wal'", conn);
+            wal.ExecuteNonQuery();
+            return conn;
         }
 
         //private const string _sqlEdit = "";
-        private const string _sqlAdd = @"INSERT INTO `{0}_current_list` (
-    `home_id`, `name`, `section`, `brand`, `notes`, `price`, `quantity`,`created_on`,`created_tz`, `created_by`,
-    `in_cart_on`, `in_cart_tz`, `in_cart_by`, `purchased_on`, `purchased_tz`, `purchased_by`)
+        private const string _sqlAdd = @"INSERT INTO ""current_list"" (
+    ""home_id"", ""name"", ""section"", ""brand"", ""notes"", ""price"", ""quantity"",""created_on"",""created_tz"", ""created_by"",
+    ""in_cart_on"", ""in_cart_tz"", ""in_cart_by"", ""purchased_on"", ""purchased_tz"", ""purchased_by"")
 VALUES (
     @HomeId, @Name, @Section, @Brand, @Notes, @Price, @Qty, @CreatedOn, @CreatedTz, @CreatedUser,
     @InCartOn, @InCartTz, @InCartUser, @PurchasedOn, @PurchasedTz, @PurchasedUser) 
 ON DUPLICATE KEY UPDATE
-    `section` = @Section, `brand` = @Brand, `notes` = @Notes, `price` = @Price, `quantity` = @Qty,
-    `created_on` = @CreatedOn, `created_tz` = @CreatedTz, `created_by` = @CreatedUser,
-    `in_cart_on` = @InCartOn, `in_cart_tz` = @InCartTz, `in_cart_by` = @InCartUser,
-    `purchased_on` = @PurchasedOn, `purchased_tz` = @PurchasedTz, `purchased_by` = @PurchasedUser
+    ""section"" = @Section, ""brand"" = @Brand, ""notes"" = @Notes, ""price"" = @Price, ""quantity"" = @Qty,
+    ""created_on"" = @CreatedOn, ""created_tz"" = @CreatedTz, ""created_by"" = @CreatedUser,
+    ""in_cart_on"" = @InCartOn, ""in_cart_tz"" = @InCartTz, ""in_cart_by"" = @InCartUser,
+    ""purchased_on"" = @PurchasedOn, ""purchased_tz"" = @PurchasedTz, ""purchased_by"" = @PurchasedUser
 ;";
-        public async Task<GroceryItem?> AddAsync(GroceryItem model, CancellationToken cancel)
+        public Task<GroceryItem?> AddAsync(GroceryItem model, CancellationToken cancel)
         {
+            //return Task.Run()
             try
             {
-                await using var conn = new SQLiteConnection(_connect);
-                await conn.OpenAsync(cancel);
+                using var conn = Connect(model.HomeId);
 
-                var homeId = await GetHomeId(conn, model.HomeId, cancel);
-                var sql = string.Format(_sqlAdd, homeId);
-
-                var def = new CommandDefinition(sql, model, cancellationToken: cancel);
-                return await conn.QueryFirstOrDefaultAsync<GroceryItem>(def);
+                var def = new CommandDefinition(_sqlAdd, model, cancellationToken: cancel);
+                var result = conn.QueryFirstOrDefault<GroceryItem>(def);
+                return Task.FromResult(result);
             }
             catch (Exception ex)
             {
-                _log.LogError(ex, "Grocery.Add ({@model}) ERRORED", model);
+                _log.Error(ex, "Grocery.Add ({@model}) ERRORED", model);
             }
-            return null;
+            return Task.FromResult<GroceryItem?>(null);
         }
 
         private const string _sqlDelete = @"DELETE
-FROM `{0}_current_list`
-WHERE `item_id` = @ItemId;";
-        public async Task<GroceryItem?> DeleteAsync(GroceryItem model, CancellationToken cancel)
+FROM ""{0}_current_list""
+WHERE ""item_id"" = @ItemId;";
+        public Task<GroceryItem?> DeleteAsync(GroceryItem model, CancellationToken cancel)
         {
             try
             {
-                await using var conn = new SQLiteConnection(_connect);
-                await conn.OpenAsync(cancel);
+                using var conn = Connect(model.HomeId);
 
-                var homeId = await GetHomeId(conn, model.HomeId, cancel);
-                var sql = string.Format(_sqlDelete, homeId);
-
-                await using var cmd = new SQLiteCommand(sql, conn);
-                var p = new SQLiteParameter("@ItemId", SQLiteDbType.Int32);
+                using var cmd = new SQLiteCommand(_sqlDelete, conn);
+                var p = new SQLiteParameter("@ItemId", SQLiteType.Int32);
                 p.Value = model.Id;
-                var count = await cmd.ExecuteNonQueryAsync(cancel);
-                if (count > 0) return model;
+                var count = cmd.ExecuteNonQuery();
+                if (count > 0) return Task.FromResult(model);
             }
             catch (Exception ex)
             {
-                _log.LogError(ex, "Grocery.Add ({@model}) ERRORED", model);
+                _log.Error(ex, "Grocery.Add ({@model}) ERRORED", model);
             }
-            return null;
+            return Task.FromResult<GroceryItem?>(null);
         }
 
         private const string _sqlGetBase = @"SELECT
-    `item_id` Id, `home_id` HomeId, `name` Name, `section` Section,
-    `brand` Brand, `notes` Notes, `price` Price, `quantity` Qty,
-    `created_on` CreatedOn, `created_tz` CreatedTz, `created_by` CreatedUser,
-    `in_cart_on` InCartOn, `in_cart_tz` InCartTz, `in_cart_by` InCartUser,
-    `purchased_on` PurchasedOn, `purchased_tz` PurchasedTz, `purchased_by` PurchasedUser
-FROM `{0}_current_list`";
+    ""item_id"" Id, ""home_id"" HomeId, ""name"" Name, ""section"" Section,
+    ""brand"" Brand, ""notes"" Notes, ""price"" Price, ""quantity"" Qty,
+    ""created_on"" CreatedOn, ""created_tz"" CreatedTz, ""created_by"" CreatedUser,
+    ""in_cart_on"" InCartOn, ""in_cart_tz"" InCartTz, ""in_cart_by"" InCartUser,
+    ""purchased_on"" PurchasedOn, ""purchased_tz"" PurchasedTz, ""purchased_by"" PurchasedUser
+FROM ""current_list""";
         private const string _sqlGetById = _sqlGetBase + @"
-WHERE `item_id` = @ItemId;";
-        public async Task<GroceryItem?> GetItemAsync(string homeSlug, string itemId, CancellationToken cancel)
+WHERE ""item_id"" = @ItemId;";
+        public Task<GroceryItem?> GetItemAsync(string homeSlug, string itemId, CancellationToken cancel)
         {
             try
             {
-                await using var conn = new SQLiteConnection(_connect);
-                await conn.OpenAsync(cancel);
-
-                var homeId = await GetHomeId(conn, homeSlug, cancel);
-                var sql = string.Format(_sqlGetById, homeId);
-
-                var def = new CommandDefinition(sql, new { ItemId = itemId }, cancellationToken: cancel);
-                return await conn.QueryFirstOrDefaultAsync<SqlGroceryItem>(def);
+                using var conn = Connect(homeSlug);
+                var def = new CommandDefinition(_sqlGetById, new { ItemId = itemId }, cancellationToken: cancel);
+                var result = conn.QueryFirstOrDefault<GroceryItem>(def);
+                return Task.FromResult(result);
             }
             catch (Exception ex)
             {
-                _log.LogError(ex, "Grocery.GetOne (Home:{homeSlug})(Item:{itemId}) ERRORED", homeSlug, itemId);
+                _log.Error(ex, "Grocery.GetOne (Home:{homeSlug})(Item:{itemId}) ERRORED", homeSlug, itemId);
             }
-            return null;
+            return Task.FromResult<GroceryItem?>(null);
         }
 
-        public async Task<IEnumerable<GroceryItem>> GetListAsync(string homeSlug, CancellationToken cancel)
+        public Task<IEnumerable<GroceryItem>> GetListAsync(string homeSlug, CancellationToken cancel)
         {
             try
             {
-                await using var conn = new SQLiteConnection(_connect);
-                await conn.OpenAsync(cancel);
-
-                var homeId = await GetHomeId(conn, homeSlug, cancel);
-                var sql = string.Format(_sqlGetBase, homeId);
-
-                var def = new CommandDefinition(sql, cancellationToken: cancel);
-                return await conn.QueryAsync<SqlGroceryItem>(def);
+                using var conn = Connect(homeSlug);
+                var def = new CommandDefinition(_sqlGetBase, cancellationToken: cancel);
+                var result = conn.Query<GroceryItem>(def);
+                return Task.FromResult(result);
             }
             catch (Exception ex)
             {
-                _log.LogError(ex, "Grocery.Get (Home:{homeSlug}) ERRORED", homeSlug);
+                _log.Error(ex, "Grocery.Get (Home:{homeSlug}) ERRORED", homeSlug);
             }
-            return [];
+            return Task.FromResult<IEnumerable<GroceryItem>>([]);
         }
 
         public Task<IEnumerable<GroceryItem>> CheckoutAsync(string homeId, List<string> checkoutItemIds, string? storeName, CancellationToken cancel)

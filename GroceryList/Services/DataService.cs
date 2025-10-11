@@ -1,5 +1,4 @@
 ﻿using GroceryList.Models.Config;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
@@ -34,11 +33,11 @@ namespace GroceryList.Services
         private const string homeFile = "home.json";
         private const int bufferSize = 8192;
         private readonly string dataPath;
-        private readonly ILogger<FileDataService> logger;
+        private readonly Serilog.ILogger _log;
 
-        public FileDataService(ILogger<FileDataService> dataLogger, IOptions<DataServiceConfig> options)
+        public FileDataService(IOptions<DataServiceConfig> options) //ILogger<FileDataService> dataLogger, 
         {
-            logger = dataLogger;
+            _log = Serilog.Log.Logger;
             // need to be able to define the base (for different types of data)
             // also need to have a better locking strategy for updates (none right now)
             var path = options.Value.DataPath;
@@ -67,10 +66,10 @@ namespace GroceryList.Services
         }
         public async Task<Models.Home?> AddHomeAsync(Models.Home home, CancellationToken cancel = default) // should the home be defined prior to add?
         {
-            var logEnabled = logger.IsEnabled(LogLevel.Debug);
-            if (logEnabled)
+            var debug = _log.IsEnabled(Serilog.Events.LogEventLevel.Debug);
+            if (debug)
             {
-                logger.LogDebug("AddHome init: {@home}", home);
+                _log.Debug("AddHome init: {@home}", home);
             }
             if (string.IsNullOrWhiteSpace(home.Id)) throw new ArgumentNullException("ID required");
 
@@ -86,9 +85,9 @@ namespace GroceryList.Services
             using var file = new FileStream(hfile, FileMode.Create, FileAccess.Write, FileShare.Read, bufferSize, true);
             await JsonSerializer.SerializeAsync(file, home); //, jsonOptions, cancel);
 
-            if (logEnabled)
+            if (debug)
             {
-                logger.LogDebug("AddHome return: {@home}", home);
+                _log.Debug("AddHome return: {@home}", home);
             }
             return home;
         } // END AddHomeAsync

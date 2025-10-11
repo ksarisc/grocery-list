@@ -1,7 +1,6 @@
 ﻿using Dapper;
 using GroceryList.Services;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using MySqlConnector;
 using System;
 using System.Collections.Generic;
@@ -37,7 +36,7 @@ namespace GroceryList.Data
             }
             catch (Exception ex)
             {
-                _log.LogError(ex, "Home Exists ({homeId}) ERRORED", homeId);
+                _log.Error(ex, "Home Exists ({homeId}) ERRORED", homeId);
             }
             return found != 0;
         }
@@ -58,7 +57,7 @@ VALUES (@Id, @Title, @Email, @Timezone, @CreatedBy, @CreatedTime, @CreatedByMeta
             }
             catch (Exception ex)
             {
-                _log.LogError(ex, "Home Exists ({homeId}) ERRORED", home.Id);
+                _log.Error(ex, "Home Exists ({homeId}) ERRORED", home.Id);
             }
             return null;
         }
@@ -76,7 +75,7 @@ WHERE `home_id` = @HomeId OR `identifier` = @Identifier;";
             }
             catch (Exception ex)
             {
-                _log.LogError(ex, "Home ({homeId}) ERRORED", homeId);
+                _log.Error(ex, "Home ({homeId}) ERRORED", homeId);
             }
             throw new KeyNotFoundException($"Home ({homeId}) NOT Found");
         }

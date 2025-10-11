@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Threading.Tasks;
@@ -10,22 +9,21 @@ namespace GroceryList.Controllers
     [Route("~/[controller]")]
     public class HomeController : Controller
     {
-        private readonly Services.IDataService data;
-        private readonly ILogger<HomeController> logger;
-        private readonly bool allowAdd = false;
-        private readonly string[]? allowAddrs;
+        private readonly Services.IDataService _data;
+        private readonly Serilog.ILogger _log;
+        private readonly bool _allowAdd = false;
+        private readonly string[]? _allowAddrs;
 
-        public HomeController(Services.IDataService dataService, ILogger<HomeController> homeLogger,
-                        IOptions<Models.Config.GeneralConfig> options)
+        public HomeController(Services.IDataService dataService, IOptions<Models.Config.GeneralConfig> options)
         {
-            data = dataService;
-            logger = homeLogger;
+            _log = Serilog.Log.Logger;
+            _data = dataService;
             if (options != null && options.Value != null)
             {
-                allowAdd = options.Value.AllowHomeCreation;
+                _allowAdd = options.Value.AllowHomeCreation;
                 if (options.Value.AllowedIpAddresses?.Length > 0)
                 {
-                    allowAddrs = options.Value.AllowedIpAddresses;
+                    _allowAddrs = options.Value.AllowedIpAddresses;
                 }
             }
         }
@@ -56,13 +54,13 @@ namespace GroceryList.Controllers
                 return View(model);
             }
 
-            if (!allowAdd)
+            if (!_allowAdd)
             {
                 TempData["ErrorMessage"] = "You are NOT able to add homes currently.";
                 return View(model);
             }
             var remote = HttpContext.GetRemoteIp();
-            if (allowAddrs != null && !Array.Exists(allowAddrs, a => remote.Equals(a, StringComparison.Ordinal)))
+            if (_allowAddrs != null && !Array.Exists(_allowAddrs, a => remote.Equals(a, StringComparison.Ordinal)))
             {
                 TempData["ErrorMessage"] = "You are NOT able to add homes currently.";
                 return View(model);
@@ -83,7 +81,7 @@ namespace GroceryList.Controllers
                     CreatedTime = DateTimeOffset.Now,
                     CreatedByMeta = $"IP:{remote}|UserAgent:{Request.Headers["User-Agent"]}",
                 };
-                var result = await data.AddHomeAsync(home);
+                var result = await _data.AddHomeAsync(home);
                 if (result == null)
                 {
                     TempData["ErrorMessage"] = $"There was an error creating you home ({homeId}) {home.Title}.";
@@ -94,7 +92,7 @@ namespace GroceryList.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Home.Create ({0}) Error: {1}", homeId, model);
+                _log.Error(ex, "Home.Create ({0}) Error: {1}", homeId, model);
             }
             return View();
         } // END Create

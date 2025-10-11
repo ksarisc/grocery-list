@@ -4,7 +4,6 @@ using GroceryList.Lib.Models;
 using GroceryList.Models;
 using GroceryList.Models.Data;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using MySqlConnector;
 using System;
 using System.Collections.Concurrent;
@@ -86,7 +85,7 @@ ON DUPLICATE KEY UPDATE
             }
             catch (Exception ex)
             {
-                _log.LogError(ex, "Grocery.Add ({@model}) ERRORED", model);
+                _log.Error(ex, "Grocery.Add ({@model}) ERRORED", model);
             }
             return null;
         }
@@ -112,7 +111,7 @@ WHERE `item_id` = @ItemId;";
             }
             catch (Exception ex)
             {
-                _log.LogError(ex, "Grocery.Add ({@model}) ERRORED", model);
+                _log.Error(ex, "Grocery.Add ({@model}) ERRORED", model);
             }
             return null;
         }
@@ -141,7 +140,7 @@ WHERE `item_id` = @ItemId;";
             }
             catch (Exception ex)
             {
-                _log.LogError(ex, "Grocery.GetOne (Home:{homeSlug})(Item:{itemId}) ERRORED", homeSlug, itemId);
+                _log.Error(ex, "Grocery.GetOne (Home:{homeSlug})(Item:{itemId}) ERRORED", homeSlug, itemId);
             }
             return null;
         }
@@ -161,7 +160,7 @@ WHERE `item_id` = @ItemId;";
             }
             catch (Exception ex)
             {
-                _log.LogError(ex, "Grocery.Get (Home:{homeSlug}) ERRORED", homeSlug);
+                _log.Error(ex, "Grocery.Get (Home:{homeSlug}) ERRORED", homeSlug);
             }
             return [];
         }
